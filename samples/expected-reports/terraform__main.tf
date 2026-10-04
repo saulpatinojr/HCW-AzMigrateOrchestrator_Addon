@@ -3,10 +3,13 @@
 # STATUS: ILLUSTRATIVE — NOT PRODUCTION-APPROVED. Run fmt/validate/tfsec or trivy/plan and obtain human approval.
 
 module "data_services" {
-  source              = "./modules/data_services"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
+  source                    = "./modules/data_services"
+  location                  = var.location
+  resource_group_name       = var.resource_group_name
+  tags                      = var.tags
+  billingdb_server_id       = var.billingdb_server_id
+  sql_entra_admin_login     = var.sql_entra_admin_login
+  sql_entra_admin_object_id = var.sql_entra_admin_object_id
 }
 
 module "identity" {
@@ -17,17 +20,19 @@ module "identity" {
 }
 
 module "monitoring" {
-  source              = "./modules/monitoring"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
+  source                     = "./modules/monitoring"
+  location                   = var.location
+  resource_group_name        = var.resource_group_name
+  tags                       = var.tags
+  log_analytics_workspace_id = var.log_analytics_workspace_id
 }
 
 module "network" {
-  source              = "./modules/network"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
+  source                              = "./modules/network"
+  location                            = var.location
+  resource_group_name                 = var.resource_group_name
+  tags                                = var.tags
+  vnet_billing_prod_eus_address_space = var.vnet_billing_prod_eus_address_space
 }
 
 module "shared_services" {
@@ -35,11 +40,17 @@ module "shared_services" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
+  tenant_id           = var.tenant_id
 }
 
 module "workload" {
-  source              = "./modules/workload"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
+  source                                 = "./modules/workload"
+  location                               = var.location
+  resource_group_name                    = var.resource_group_name
+  tags                                   = var.tags
+  app_billing_web_prod_service_plan_id   = var.app_billing_web_prod_service_plan_id
+  func_billing_jobs_prod_service_plan_id = var.func_billing_jobs_prod_service_plan_id
+  ssh_public_key                         = var.ssh_public_key
+  vm_billing_01_image_id                 = var.vm_billing_01_image_id
+  vm_billing_01_nic_id                   = var.vm_billing_01_nic_id
 }

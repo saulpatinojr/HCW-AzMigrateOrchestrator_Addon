@@ -252,12 +252,21 @@ provider "azurerm" {
   ];
   files["variables.tf"] = header + varBlocks.join("\n\n") + "\n";
   const modules = [...byModule.keys()].sort();
-  files["main.tf"] = header + (modules.length ? modules.map((m) => `module "${m}" {\n  source              = "./modules/${m}"\n  location            = var.location\n  resource_group_name = var.resource_group_name\n  tags                = var.tags\n}`).join("\n\n") : "# No resources require recreation for this operation.") + "\n";
+  // Every `var.x` a module body references must be declared by that module and passed by the root call, or
+  // `terraform validate` fails with "Missing required argument" / "Reference to undeclared input variable".
+  const moduleInputs = (m: string): string[] => [...new Set([...byModule.get(m)!.join("\n").matchAll(/var\.(\w+)/g)].map((x) => x[1]))].filter((v) => !["location", "resource_group_name", "tags"].includes(v)).sort();
+  const varType = (v: string): string => (v.endsWith("address_space") ? "list(string)" : "string");
+  const moduleCall = (m: string): string => {
+    const inputs = ["location", "resource_group_name", "tags", ...moduleInputs(m)];
+    const width = Math.max("source".length, ...inputs.map((v) => v.length));
+    return `module "${m}" {\n  ${"source".padEnd(width)} = "./modules/${m}"\n` + inputs.map((v) => `  ${v.padEnd(width)} = var.${v}`).join("\n") + "\n}";
+  };
+  files["main.tf"] = header + (modules.length ? modules.map(moduleCall).join("\n\n") : "# No resources require recreation for this operation.") + "\n";
   files["outputs.tf"] = header + `output "generated_modules" {\n  value = ${JSON.stringify(modules)}\n}\n`;
   files["terraform.tfvars.example"] = header + `destination_subscription_id = "00000000-0000-0000-0000-000000000000"\nsource_subscription_id      = "00000000-0000-0000-0000-000000000000"\ntenant_id                   = "00000000-0000-0000-0000-000000000000"\nsource_tenant_id            = "00000000-0000-0000-0000-000000000000"\nlocation                    = ${hcl(a.intent.destinationRegion ?? "westus3")}\nresource_group_name         = "rg-example-prod-wus3-01"\n# Placeholder values only. Never commit real identifiers or secrets.\n`;
   for (const m of modules) {
     files[`modules/${m}/main.tf`] = header + byModule.get(m)!.join("\n\n") + "\n";
-    files[`modules/${m}/variables.tf`] = header + `variable "location" { type = string }\nvariable "resource_group_name" { type = string }\nvariable "tags" { type = map(string) }\n` + [...extraVars].filter((v) => !common.has(v) && byModule.get(m)!.some((b) => b.includes(`var.${v}`))).map((v) => `variable "${v}" { type = ${v.endsWith("address_space") ? "list(string)" : "string"} }`).join("\n") + "\n";
+    files[`modules/${m}/variables.tf`] = header + `variable "location" { type = string }\nvariable "resource_group_name" { type = string }\nvariable "tags" { type = map(string) }\n` + moduleInputs(m).map((v) => `variable "${v}" { type = ${varType(v)} }`).join("\n") + "\n";
   }
   files["README.md"] = `# Generated Terraform\n\n${a.edition === "demo" ? "**DEMO — NOT FOR PRODUCTION.** " : ""}Illustrative scaffolding for resources whose infrastructure disposition is *recreate*. Modules: ${modules.join(", ") || "none"}.\n\nSeparation: platform/connectivity/identity/shared_services/workload/monitoring/data_services. State: use a remote azurerm backend with locking, one state per environment. Import blocks are intentionally omitted until the destination is inspected.\n\nSkipped (${skipped.length}):\n${skipped.map((s) => `- ${s.resource}: ${s.reason}`).join("\n")}\n\nBefore use: terraform fmt -check, terraform validate, security scan (trivy/tfsec), policy check, plan review, environment test, human approval.\n`;
   return { files, modulesUsed: modules, skipped };
