@@ -13,6 +13,7 @@
 - Boundary tests: `_Addon` `edition-boundary` now forbids any dependency on `@amo/azure-auth`, `@amo/azure-arm`, `@amo/azure-execution` or `@azure/*` and checks the interface package has no Azure endpoint or auth import; `_App` adds `appliance-boundary`.
 - Coder template HCL: two single-line blocks used `;`; fixed, `terraform fmt` applied, `terraform validate` passes.
 - `scripts/package-repository.ps1`: excluded every file (array element parsed as a bare `# Changelog
+- First CI run after publication: `aquasecurity/trivy-action@0.29.0` never existed (tags are v-prefixed from v0.30.0); every action is now pinned to a full commit SHA with the version in a trailing comment. `release-cli.yml` was an invalid workflow file (unquoted `${{ matrix.os }}` inside a flow mapping); rewritten in block style. The Terraform generator emitted an invalid single-line `variable "location"` block when a destination region was set; `terraform init`/`validate` of a generated bundle now pass (root and hcp). The Playwright harness server binds 127.0.0.1 and is awaited by URL (Linux runners resolve `localhost` to ::1).
 
 > **Repository split (2026-10-04, ADR-0027).** This file predates the split of the monorepo into `saulpatinojr/HCW-AzMigrateOrchestrator_Addon` and `saulpatinojr/HCW-AzMigrateOrchestrator_App`. This repository (`saulpatinojr/HCW-AzMigrateOrchestrator_Addon`) holds the shared core, rules, CLI, lab API, lab web harness and the UI package. Entries below describe the monorepo as it was; paths that moved to the sibling repository are noted there.
 
