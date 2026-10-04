@@ -15,4 +15,5 @@ The engine, rules, CLI and UI components are versioned and released upstream in 
   exposes no Azure client subpath and contains no Azure endpoint.
 - Lab image is now the two-tree build (upstream packages + this edition); runtime image drops npm and applies Debian upgrades;
   publication scans before pushing.
+- `.npmrc` `install-links=true`: the interim `file:` links are packed and installed like registry packages, so their dependencies (Radix) install and nothing from the upstream tree is needed at runtime; the lab image no longer copies the upstream directory.
 - Tags `v0.1.0`–`v0.1.3` of this repository predate the flip (they released the former core from here) and are historical.

@@ -13,7 +13,7 @@ COPY HCW-AzMigrateOrchestrator_App/apps ./HCW-AzMigrateOrchestrator_App/apps
 COPY HCW-AzMigrateOrchestrator_App/rules ./HCW-AzMigrateOrchestrator_App/rules
 COPY HCW-AzMigrateOrchestrator_App/scripts ./HCW-AzMigrateOrchestrator_App/scripts
 RUN cd HCW-AzMigrateOrchestrator_App && npm ci --no-audit --no-fund && npx tsc -b tsconfig.build.json --force && node scripts/assemble-packages.mjs
-COPY HCW-AzMigrateOrchestrator_Addon/package.json HCW-AzMigrateOrchestrator_Addon/package-lock.json HCW-AzMigrateOrchestrator_Addon/tsconfig.base.json HCW-AzMigrateOrchestrator_Addon/tsconfig.build.json ./HCW-AzMigrateOrchestrator_Addon/
+COPY HCW-AzMigrateOrchestrator_Addon/package.json HCW-AzMigrateOrchestrator_Addon/.npmrc HCW-AzMigrateOrchestrator_Addon/package-lock.json HCW-AzMigrateOrchestrator_Addon/tsconfig.base.json HCW-AzMigrateOrchestrator_Addon/tsconfig.build.json ./HCW-AzMigrateOrchestrator_Addon/
 COPY HCW-AzMigrateOrchestrator_Addon/apps ./HCW-AzMigrateOrchestrator_Addon/apps
 RUN cd HCW-AzMigrateOrchestrator_Addon && npm ci --no-audit --no-fund && npx tsc -b tsconfig.build.json --force && npm prune --omit=dev
 
@@ -22,8 +22,8 @@ ENV NODE_ENV=production PORT=8080 AMO_STATIC_DIR=/srv/HCW-AzMigrateOrchestrator_
 WORKDIR /srv/HCW-AzMigrateOrchestrator_Addon
 # Pull the latest Debian security fixes for the base image (Trivy gates publication on fixed HIGH/CRITICAL CVEs).
 RUN apt-get update && apt-get -y --no-install-recommends upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*
-# Only the assembled packages come from upstream (the file: links in node_modules point at them); rules ship inside migration-core.
-COPY --from=build /srv/HCW-AzMigrateOrchestrator_App/dist-packages /srv/HCW-AzMigrateOrchestrator_App/dist-packages
+# install-links (.npmrc) packed the upstream packages into node_modules, so nothing from the upstream tree is needed at runtime;
+# the rule corpus ships inside migration-core.
 COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/node_modules ./node_modules
 COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/apps ./apps
 COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/package.json ./

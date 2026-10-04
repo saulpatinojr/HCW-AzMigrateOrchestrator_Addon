@@ -6,7 +6,8 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
 ## Flip to the downstream edition (2026-10-04)
 
 - **Environment:** Windows 11, Node 26.5, npm 11.17, Docker Desktop 29.8 (CI targets Node 22 — this run is not evidence for Node 22).
-- **Executed:** see the section appended by the flip commit.
+- **Executed:** tree rebuilt from the post-split repositories with imports rewritten to the published packages; `.npmrc` `install-links=true` so the `file:` links are packed and installed like registry packages (their own dependencies included); `npm install` (new lockfile) and `npm ci` clean; `npm test` — **15 pass, 0 fail** (lab API, OpenAPI contract, manifest, no-secrets, rewritten `edition-boundary` against the installed core); harness `vite build` — chunk hashes identical to the pre-flip harness build; `docker build` of `Dockerfile.lab` from the two-tree context → nothing from the upstream tree at runtime, rules found inside `migration-core`, health 200, sample served, no `npm`, containerised Trivy (HIGH/CRITICAL, fixed only) exit 0; all 8 workflow files parse and every action is SHA-pinned; `terraform fmt -check` clean; PowerShell packaging 139 files, no leak.
+- **Not executed locally:** Playwright e2e (CI job `e2e`; the first CI attempt failed because npm does not install a symlinked package's dependencies — fixed by `install-links`); `core-update.yml` end to end (no newer upstream release exists yet; trigger it manually with `workflow_dispatch` to rehearse).
 
 ## Standing limitations
 
