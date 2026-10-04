@@ -2,11 +2,11 @@
   "name": "hcw-azmigrateorchestrator-addon",
   "version": "0.2.0",
   "private": true,
-  "description": "Hybrid Cloud Works Migration Explorer — the slim web-front edition of the Azure Migration Orchestrator: CSV lab API and site integration, built on the published core (ADR-0028)",
+  "description": "Hybrid Cloud Works Migration Explorer — the slim web-front edition of the Azure Migration Orchestrator: CSV lab API and site integration, built on the published core (ADR-0028) Workspace manifests use \"*\" for the two upstream packages during the interim: the exact pin is APP_REF (the upstream release tag) until the packages are installed from npm, when they become exact versions.",
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
-    "@types/node": "^22.10.0",
+    "@types/node": "^26.6.4",
     "typescript": "^5.6.3"
   }
 }

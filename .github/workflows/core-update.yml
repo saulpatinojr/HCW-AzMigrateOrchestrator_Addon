@@ -37,7 +37,7 @@ jobs:
         with: { repository: saulpatinojr/HCW-AzMigrateOrchestrator_App, ref: "${{ steps.refs.outputs.latest }}", path: HCW-AzMigrateOrchestrator_App }
       - if: steps.refs.outputs.changed == 'true'
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with: { node-version: 22 }
+        with: { node-version: 26 }
       - if: steps.refs.outputs.changed == 'true'
         name: Bump APP_REF in this repository
         working-directory: HCW-AzMigrateOrchestrator_Addon

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Clone (or reuse) the upstream product as a sibling checkout at the pinned release, build it and assemble its packages so this
-# repository's file: links resolve (ADR-0028 interim contract). Usage: APP_REF=v0.2.0 bash scripts/bootstrap-app.sh
+# repository's file: links resolve (ADR-0028 interim contract). Usage: APP_REF=v0.2.1 bash scripts/bootstrap-app.sh
 set -euo pipefail
-APP_REF="${APP_REF:-v0.2.0}"
+APP_REF="${APP_REF:-v0.2.1}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIR="$ROOT/../HCW-AzMigrateOrchestrator_App"
 if [ ! -d "$DIR" ]; then

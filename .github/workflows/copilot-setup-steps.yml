@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 env:
-  APP_REF: v0.2.0
+  APP_REF: v0.2.1
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with: { repository: saulpatinojr/HCW-AzMigrateOrchestrator_App, ref: "${{ env.APP_REF }}", path: HCW-AzMigrateOrchestrator_App }
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with: { node-version: 22, cache: npm, cache-dependency-path: "HCW-AzMigrateOrchestrator_*/package-lock.json" }
+        with: { node-version: 26, cache: npm, cache-dependency-path: "HCW-AzMigrateOrchestrator_*/package-lock.json" }
       - run: npm ci && npm run build
         working-directory: HCW-AzMigrateOrchestrator_App
       - run: npm ci
