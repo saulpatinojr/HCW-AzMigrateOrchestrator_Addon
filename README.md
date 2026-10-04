@@ -23,7 +23,7 @@ docker compose up --build                # same, containerized
 
 PowerShell: `npm ci; npm test; npm run rules:validate; node apps/cli/dist/main.js assess --csv samples/resources-csv/sample-resources.csv --out .\out --region westus3 --zip`
 
-Single executable (no Node at run time): `bash scripts/build-sea.sh` → `dist-sea/amo assess --csv inventory.csv --out ./out --region westus3`.
+Single executable (no Node at run time): `bash scripts/build-sea.sh` → `dist-sea/amo-<os>-<arch> assess --csv inventory.csv --out ./out --region westus3` (for example `dist-sea/amo-linux-x64`, `dist-sea/amo-windows-x64.exe`; a `SHA256SUMS-<os>-<arch>.txt` is written beside it).
 
 ## Repository map
 

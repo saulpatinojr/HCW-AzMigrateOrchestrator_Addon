@@ -1,18 +1,21 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
-# Lab API image. Order matters: build locally -> scan -> push. A failing scan publishes nothing (WORKING-PLAN.md Phase 2).
-# The Coder workspace image is published separately and manually (publish-workspace-image.yml) while Coder stays disabled.
-name: publish-images
+# Coder guided-lab workspace image (ADR-0023). Manual only: Coder integration is disabled for the initial deployment
+# (WORKING-PLAN.md Phase 1/3), and this Ubuntu-based tooling image must not block the lab API release.
+# Build locally -> scan -> push; a failing scan publishes nothing.
+name: publish-workspace-image
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver tag for the image (e.g. 0.1.0)"
+        required: true
 permissions:
   contents: read
   packages: write
   id-token: write
   attestations: write
 env:
-  IMAGE: ghcr.io/${{ github.repository_owner }}/azure-migration-orchestrator-lab
+  IMAGE: ghcr.io/${{ github.repository_owner }}/azure-migration-orchestrator-lab-workspace
 jobs:
   build-scan-publish:
     runs-on: ubuntu-latest
@@ -21,18 +24,11 @@ jobs:
       - uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
       - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
-      - id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
-        with:
-          images: ${{ env.IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=sha
       - name: Build (local only, for scanning)
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
-          file: infrastructure/docker/Dockerfile.lab
+          file: infrastructure/coder/image/Dockerfile
           load: true
           push: false
           tags: ${{ env.IMAGE }}:scan
@@ -44,10 +40,9 @@ jobs:
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
-          file: infrastructure/docker/Dockerfile.lab
+          file: infrastructure/coder/image/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE }}:${{ inputs.version }},${{ env.IMAGE }}:sha-${{ github.sha }}
           provenance: true
           sbom: true
       - name: Attest build provenance (SLSA)
@@ -56,5 +51,4 @@ jobs:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
-      - name: Record the immutable digest for deployments
-        run: echo "${{ env.IMAGE }}@${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - run: echo "${{ env.IMAGE }}@${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
