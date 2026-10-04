@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID, timingSafeEqual, createHash } from "node:crypto";
-import type { Assessment } from "@amo/domain";
-import type { Bundle } from "@amo/artifact-generator";
+import type { Assessment } from "@hybridcloudworks/migration-core/domain";
+import type { Bundle } from "@hybridcloudworks/migration-core/artifact-generator";
 
 export interface StoredAssessment {
   id: string;

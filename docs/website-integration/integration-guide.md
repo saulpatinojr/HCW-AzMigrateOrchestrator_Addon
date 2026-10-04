@@ -1,22 +1,25 @@
 # Integrating the explorer into hybridcloudworks.com
 
-The site (React 19 / Vite / Tailwind 4 / React Router / SWA behind Cloudflare) mounts `@amo/ui` as a **client-only island**.
+The site (React 19 / Vite / Tailwind 4 / React Router / SWA behind Cloudflare) mounts `@hybridcloudworks/migration-ui` as a **client-only island**.
 
 ## 1. Dependency
 
-The site installs the published package at an exact version (Phase 2 of `WORKING-PLAN.md`):
+The explorer is the published package `@hybridcloudworks/migration-ui`, released from the upstream product repository
+`saulpatinojr/HCW-AzMigrateOrchestrator_App` (ADR-0028). Install it at an exact version:
 
 ```bash
-npm install --save-exact @hybridcloudworks/migration-ui@0.1.0 --workspace=frontend
+npm install --save-exact @hybridcloudworks/migration-ui@0.2.0 --workspace=frontend
 ```
 
-Until that release exists, pin a release tag of the `_Addon` repository instead. Never install from `main` and do not use a submodule (ADR-0027):
+Peer deps `react`/`react-dom` are already present. Add the package to the Tailwind source scan in the site's CSS entry:
 
-```bash
-npm install github:saulpatinojr/HCW-AzMigrateOrchestrator_Addon#v0.1.0 --workspace=frontend
+```css
+@source "../node_modules/@hybridcloudworks/migration-ui/dist";
 ```
 
-Peer deps `react`/`react-dom` are already present.
+Until the owner completes the npm bootstrap (`docs/release/npm-publishing.md` upstream) the package is not on the registry and
+the site cannot install it; a git dependency cannot deliver the assembled package, so Phase 3 of the working plan waits on that step.
+Never install from `main` and do not use a submodule.
 
 ## 2. Routes (`frontend/src/App.jsx` + the route inventory)
 
@@ -32,7 +35,7 @@ Add all three to `App.jsx` **and** the route inventory in the same PR, then run 
 
 ```jsx
 import { lazy, Suspense, useRef, useEffect } from "react";
-const MigrationExplorer = lazy(() => import("@amo/ui").then((m) => ({ default: m.MigrationExplorer })));
+const MigrationExplorer = lazy(() => import("@hybridcloudworks/migration-ui").then((m) => ({ default: m.MigrationExplorer })));
 
 export default function MigrationExplorerRoute() {
   const tokenRef = useRef();
@@ -63,7 +66,7 @@ The site's Tailwind 4 entry CSS must scan the UI package so its utility classes 
 
 ```css
 @import "tailwindcss";
-@source "../node_modules/@amo/ui/dist";
+@source "../node_modules/@hybridcloudworks/migration-ui/dist";
 ```
 
 `apps/ui-harness` shows the exact setup (`src/styles.css`, `vite.config.ts`) and is what the Playwright e2e drives.

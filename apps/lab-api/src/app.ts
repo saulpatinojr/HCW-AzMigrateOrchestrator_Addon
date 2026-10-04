@@ -1,14 +1,14 @@
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, extname, normalize } from "node:path";
-import { Orchestrator, IngestionError, AGENTS } from "@amo/agents";
-import { loadRules, defaultRulesDir } from "@amo/evidence-engine";
-import { API_LIMITS, parseCreateAssessmentRequest, type CreateAssessmentResponse } from "@amo/contracts";
-import { createZip } from "@amo/artifact-generator";
-import { demoPrincipal, gate } from "@amo/authorization";
-import { createLogger, type Logger } from "@amo/observability";
+import { Orchestrator, IngestionError, AGENTS } from "@hybridcloudworks/migration-core/agents";
+import { loadRules, defaultRulesDir } from "@hybridcloudworks/migration-core/evidence-engine";
+import { API_LIMITS, parseCreateAssessmentRequest, type CreateAssessmentResponse } from "@hybridcloudworks/migration-core/contracts";
+import { createZip } from "@hybridcloudworks/migration-core/artifact-generator";
+import { demoPrincipal, gate } from "@hybridcloudworks/migration-core/authorization";
+import { createLogger, type Logger } from "@hybridcloudworks/migration-core/observability";
 import { AssessmentStore } from "./store.js";
-import { workspaceProviderFromEnv, type WorkspaceProvider } from "@amo/workspace-provider";
+import { workspaceProviderFromEnv, type WorkspaceProvider } from "@hybridcloudworks/migration-core/workspace-provider";
 
 export interface DemoApiOptions {
   /** Exact origins allowed to call the API cross-origin (the content site). Empty = same-origin only. */

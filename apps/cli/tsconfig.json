@@ -1,6 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
-  "include": ["src"],
-  "references": [ { "path": "../../packages/domain" },{ "path": "../../packages/agents" },{ "path": "../../packages/evidence-engine" },{ "path": "../../packages/artifact-generator" } ]
-}

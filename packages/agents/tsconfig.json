@@ -1,6 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
-  "include": ["src"],
-  "references": [ { "path": "../../packages/domain" },{ "path": "../../packages/contracts" },{ "path": "../../packages/observability" },{ "path": "../../packages/csv-ingestion" },{ "path": "../../packages/evidence-engine" },{ "path": "../../packages/dependency-graph" },{ "path": "../../packages/landing-zone" },{ "path": "../../packages/classification-engine" },{ "path": "../../packages/validation-engine" },{ "path": "../../packages/report-engine" },{ "path": "../../packages/artifact-generator" },{ "path": "../../packages/authorization" },{ "path": "../../packages/azure-discovery" } ]
-}

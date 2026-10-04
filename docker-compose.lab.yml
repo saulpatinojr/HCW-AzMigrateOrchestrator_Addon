@@ -3,7 +3,7 @@
 services:
   lab-api:
     image: ghcr.io/saulpatinojr/azure-migration-orchestrator-lab:latest
-    build: { context: ., dockerfile: infrastructure/docker/Dockerfile.lab }
+    build: { context: .., dockerfile: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab } # parent directory holds both checkouts (ADR-0028)
     environment:
       AMO_ASSESSMENT_TTL_MINUTES: "120"
       AMO_ALLOWED_ORIGINS: "${AMO_ALLOWED_ORIGINS:-https://hybridcloudworks.com,https://www.hybridcloudworks.com}"

@@ -15,4 +15,4 @@ Never expose secrets. Never treat a stale/older-head check as current evidence. 
 
 ## This repository
 
-This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`: the shared migration core, rules, CLI, CSV lab API and the UI package (ADR-0027). The Azure appliance lives in `saulpatinojr/HCW-AzMigrateOrchestrator_App`. Use `.github/skills/code-review/references/azure-migration-orchestrator-profile.md` for component routing. Run `npm test` and `npm run rules:validate` as review evidence. Rules under `rules/` are data: changes need Microsoft Learn sources, a regenerated snapshot and a change report.
+This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`: the slim web-front edition (CSV lab API, static harness, site integration, lab infrastructure). The engine, rules, CLI and UI components live upstream in `saulpatinojr/HCW-AzMigrateOrchestrator_App` and arrive here as `@hybridcloudworks/migration-core` / `@hybridcloudworks/migration-ui` at the ref pinned in `.github/workflows` (`APP_REF`, ADR-0028). Build needs that sibling checkout: `npm run app:bootstrap`.

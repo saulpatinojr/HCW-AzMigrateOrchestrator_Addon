@@ -1,7 +1,7 @@
 # Local development: demo edition only. `docker compose up --build`
 services:
   lab-api:
-    build: { context: ., dockerfile: infrastructure/docker/Dockerfile.lab }
+    build: { context: .., dockerfile: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab } # parent directory holds both checkouts (ADR-0028)
     ports: ["8080:8080"]
     environment:
       AMO_ASSESSMENT_TTL_MINUTES: "120"

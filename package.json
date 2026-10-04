@@ -1,40 +1,38 @@
 {
   "name": "hcw-azmigrateorchestrator-addon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Azure Migration Orchestrator — shared migration intelligence core, rules, CLI, CSV lab API and the Hybrid Cloud Works Migration Explorer UI package (ADR-0027)",
+  "description": "Hybrid Cloud Works Migration Explorer — the slim web-front edition of the Azure Migration Orchestrator: CSV lab API and site integration, built on the published core (ADR-0028)",
   "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
-  "scripts": {
-    "build": "tsc -b tsconfig.build.json",
-    "clean": "rm -rf packages/*/dist apps/*/dist packages/*/*.tsbuildinfo apps/*/*.tsbuildinfo",
-    "test": "npm run build && node --test \"packages/*/dist/**/*.test.js\" \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
-    "test:only": "node --test \"packages/*/dist/**/*.test.js\" \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
-    "typecheck": "tsc -b tsconfig.build.json --dry",
-    "rules:validate": "node apps/cli/dist/main.js rules validate",
-    "rules:report": "node apps/cli/dist/main.js rules report",
-    "assess:sample": "node apps/cli/dist/main.js assess --csv samples/resources-csv/sample-resources.csv --out ./.local/assessment-output --region westus3",
-    "goldens:update": "node scripts/generate-goldens.mjs",
-    "lab:api": "node apps/lab-api/dist/server.js",
-    "package": "bash scripts/package-repository.sh",
-    "e2e": "npm run build && npx playwright test"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.0",
-    "esbuild": "^0.24.2",
-    "postject": "^1.0.0-alpha.6",
-    "typescript": "^5.6.3",
-    "@playwright/test": "^1.49.1"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon.git"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "app:bootstrap": "bash scripts/bootstrap-app.sh",
+    "build": "tsc -b tsconfig.build.json",
+    "clean": "rm -rf apps/*/dist apps/*/*.tsbuildinfo",
+    "test": "npm run build && node --test \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
+    "test:only": "node --test \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
+    "typecheck": "tsc -b tsconfig.build.json --dry",
+    "lab:api": "node apps/lab-api/dist/server.js",
+    "e2e": "npm run build && npx playwright test",
+    "package": "bash scripts/package-repository.sh"
+  },
+  "dependencies": {
+    "@hybridcloudworks/migration-core": "file:../HCW-AzMigrateOrchestrator_App/dist-packages/migration-core",
+    "@hybridcloudworks/migration-ui": "file:../HCW-AzMigrateOrchestrator_App/dist-packages/migration-ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.3"
   }
 }

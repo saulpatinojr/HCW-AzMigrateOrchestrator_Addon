@@ -1,14 +1,19 @@
 # CLAUDE.md — working agreement for Claude Code in this repository
 
-This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`: the shared migration intelligence core (`packages/*`), the rule corpus (`rules/`), the `amo` CLI, the CSV lab API, the lab web harness and the `@amo/ui` explorer package. The Azure appliance lives in `saulpatinojr/HCW-AzMigrateOrchestrator_App` and consumes this repository's packages at a pinned version (ADR-0027). Nothing here may depend on `@amo/azure-auth`, `@amo/azure-arm`, `@amo/azure-execution` or any `@azure/*` SDK; `tests/security/edition-boundary.test.mjs` enforces it.
+This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`, the **downstream web-front edition** (ADR-0028): the CSV lab API, the
+static harness, the browser e2e suite, lab infrastructure and the website-integration docs. The engine, rules, CLI and UI
+components live upstream in `saulpatinojr/HCW-AzMigrateOrchestrator_App` and arrive here as `@hybridcloudworks/migration-core`
+and `@hybridcloudworks/migration-ui`. Nothing here may reach Azure; `tests/security/edition-boundary.test.mjs` enforces it.
 
-- Read `docs/requirements-ledger.md`, `WORKING-PLAN.md` and `VALIDATION.md` before changing behaviour; keep them current.
-- Run `npm test` and `npm run rules:validate` before claiming anything works. Never claim a check passed that you did not run.
-- Rules are data: change `scripts/author-rules.mjs` → `node scripts/author-rules.mjs` → build → `amo rules report` → `amo rules snapshot`. Cite Microsoft Learn with a retrieval date.
-- Golden files (`samples/expected-reports`) change only deliberately via `npm run goldens:update`; explain the diff in the PR.
-- Never weaken: the unauthenticated confidence cap, the lab's inability to construct an Azure provider, the Safety Agent checks, the authorization gate, the "not production" labels.
+- Interim dependency contract: `package.json` links both packages to the sibling `../HCW-AzMigrateOrchestrator_App/dist-packages`;
+  CI, the lab image and `scripts/bootstrap-app.sh` check out upstream at `APP_REF` (a release tag, never `main`). Once the
+  packages are on npm, replace the links with exact versions and retire `core-update.yml` in favour of Dependabot.
+- Do not change engine behaviour, rules or UI components here: change them upstream, release, and let `core-update` bring the
+  release down. Only this edition's own code (lab API, harness, e2e, infra, docs) is edited here.
+- Run `npm run app:bootstrap` (or have the sibling built) before `npm test`; run `npm test` and, for anything touching the
+  explorer or the API, `npm run e2e` before claiming anything works. Never claim a check passed that you did not run.
+- Never weaken: the lab's inability to construct an Azure provider, the unauthenticated confidence cap, owner-token isolation,
+  the 5 MB / 5,000-row limits, exact-origin CORS, Turnstile on uploads, the "not production" labels.
 - No secrets, tokens, customer inventories or real tenant/subscription IDs anywhere, including fixtures and tests.
 - Owner-pasteable commands: no placeholders; bash and PowerShell both acceptable.
-- This repository holds the canonical ADR log for both repositories. Record material design choices as ADRs in `docs/adr/` (next number: 0028). Record limitations in `VALIDATION.md`.
-- Docs for agents are generated: edit `packages/agents/src/definitions.ts`, then `node scripts/generate-agent-docs.mjs`.
-- A change to a package's public surface is a change to the appliance's dependency: say so in the PR and bump the version.
+- ADRs are recorded upstream (shared numbering); copy edition-relevant ones into `docs/adr/`. Record limitations in `VALIDATION.md`.

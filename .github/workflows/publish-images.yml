@@ -1,6 +1,6 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
-# Lab API image. Order matters: build locally -> scan -> push. A failing scan publishes nothing (WORKING-PLAN.md Phase 2).
-# The Coder workspace image is published separately and manually (publish-workspace-image.yml) while Coder stays disabled.
+# Lab API image. Build context is the workspace root holding both checkouts (ADR-0028 interim contract).
+# Order matters: build locally -> scan -> push. A failing scan publishes nothing. Deployments reference the digest, never a tag.
 name: publish-images
 on:
   push:
@@ -12,12 +12,17 @@ permissions:
   id-token: write
   attestations: write
 env:
+  APP_REF: v0.2.0
   IMAGE: ghcr.io/${{ github.repository_owner }}/azure-migration-orchestrator-lab
 jobs:
   build-scan-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { path: HCW-AzMigrateOrchestrator_Addon }
+      - name: Check out the upstream product at the pinned release
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { repository: saulpatinojr/HCW-AzMigrateOrchestrator_App, ref: "${{ env.APP_REF }}", path: HCW-AzMigrateOrchestrator_App }
       - uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
       - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
@@ -32,7 +37,7 @@ jobs:
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
-          file: infrastructure/docker/Dockerfile.lab
+          file: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab
           load: true
           push: false
           tags: ${{ env.IMAGE }}:scan
@@ -44,7 +49,7 @@ jobs:
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
-          file: infrastructure/docker/Dockerfile.lab
+          file: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

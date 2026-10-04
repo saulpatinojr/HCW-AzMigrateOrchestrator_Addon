@@ -1,3 +1,2 @@
 @import "tailwindcss";
-@source "../../../packages/ui/dist";
-@source "../../../packages/ui/src";
+@source "../../../node_modules/@hybridcloudworks/migration-ui/dist";

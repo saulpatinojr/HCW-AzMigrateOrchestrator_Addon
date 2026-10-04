@@ -2,63 +2,6 @@
   "files": [],
   "references": [
     {
-      "path": "packages/domain"
-    },
-    {
-      "path": "packages/contracts"
-    },
-    {
-      "path": "packages/observability"
-    },
-    {
-      "path": "packages/csv-ingestion"
-    },
-    {
-      "path": "packages/evidence-engine"
-    },
-    {
-      "path": "packages/dependency-graph"
-    },
-    {
-      "path": "packages/landing-zone"
-    },
-    {
-      "path": "packages/classification-engine"
-    },
-    {
-      "path": "packages/validation-engine"
-    },
-    {
-      "path": "packages/report-engine"
-    },
-    {
-      "path": "packages/terraform-generator"
-    },
-    {
-      "path": "packages/runbook-generator"
-    },
-    {
-      "path": "packages/artifact-generator"
-    },
-    {
-      "path": "packages/authorization"
-    },
-    {
-      "path": "packages/workspace-provider"
-    },
-    {
-      "path": "packages/azure-discovery"
-    },
-    {
-      "path": "packages/agents"
-    },
-    {
-      "path": "packages/ui"
-    },
-    {
-      "path": "apps/cli"
-    },
-    {
       "path": "apps/lab-api"
     }
   ]

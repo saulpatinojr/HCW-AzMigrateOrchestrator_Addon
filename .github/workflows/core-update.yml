@@ -1,0 +1,93 @@
+# Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
+# Downstream flow (ADR-0028): when the upstream product (saulpatinojr/HCW-AzMigrateOrchestrator_App) publishes a new release,
+# test this edition against it and open a pull request bumping APP_REF. "Compatible" means this repository's own tests and
+# browser e2e pass against the new release. A compatible PR auto-merges only if the repository variable CORE_AUTOMERGE is "true".
+# Note: pull requests opened with GITHUB_TOKEN do not trigger other workflows, so the compatibility check runs here, not on the PR.
+# Once the packages are on npm, Dependabot (npm ecosystem) takes over and this workflow can be retired.
+name: core-update
+on:
+  schedule: [{ cron: "17 */6 * * *" }]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Upstream release tag to adopt (default: latest release)"
+        required: false
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  check-and-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { path: HCW-AzMigrateOrchestrator_Addon }
+      - id: refs
+        name: Compare the pinned APP_REF with the latest upstream release
+        working-directory: HCW-AzMigrateOrchestrator_Addon
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}", REQUESTED: "${{ inputs.ref }}" }
+        run: |
+          set -euo pipefail
+          latest="${REQUESTED:-$(gh api repos/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/latest --jq .tag_name)}"
+          current="$(grep -oE 'APP_REF: v[0-9][0-9A-Za-z.+-]*' .github/workflows/ci.yml | head -1 | awk '{print $2}')"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"; echo "current=$current" >> "$GITHUB_OUTPUT"
+          if [ "$latest" = "$current" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "already at $current"; else echo "changed=true" >> "$GITHUB_OUTPUT"; echo "$current -> $latest"; fi
+      - if: steps.refs.outputs.changed == 'true'
+        name: Check out the upstream release under test
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { repository: saulpatinojr/HCW-AzMigrateOrchestrator_App, ref: "${{ steps.refs.outputs.latest }}", path: HCW-AzMigrateOrchestrator_App }
+      - if: steps.refs.outputs.changed == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: 22 }
+      - if: steps.refs.outputs.changed == 'true'
+        name: Bump APP_REF in this repository
+        working-directory: HCW-AzMigrateOrchestrator_Addon
+        env: { LATEST: "${{ steps.refs.outputs.latest }}", CURRENT: "${{ steps.refs.outputs.current }}" }
+        run: |
+          set -euo pipefail
+          sed -i "s/APP_REF: $CURRENT/APP_REF: $LATEST/" .github/workflows/ci.yml .github/workflows/copilot-setup-steps.yml .github/workflows/publish-images.yml
+          sed -i "s/APP_REF=$CURRENT/APP_REF=$LATEST/; s/APP_REF:-$CURRENT/APP_REF:-$LATEST/" scripts/bootstrap-app.sh
+          git --no-pager diff --stat
+      - if: steps.refs.outputs.changed == 'true'
+        id: compat
+        name: Compatibility check — build upstream, install, unit tests, browser e2e
+        continue-on-error: true
+        working-directory: HCW-AzMigrateOrchestrator_Addon
+        run: |
+          set -euo pipefail
+          (cd ../HCW-AzMigrateOrchestrator_App && npm ci && npm run build)
+          npm install --no-audit --no-fund
+          npm test
+          npx playwright install --with-deps chromium
+          CI=1 npx playwright test
+      - if: steps.refs.outputs.changed == 'true'
+        id: pr
+        name: Open the bump pull request
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          path: HCW-AzMigrateOrchestrator_Addon
+          branch: core-update/${{ steps.refs.outputs.latest }}
+          title: "core: adopt upstream ${{ steps.refs.outputs.latest }} (${{ steps.compat.outcome == 'success' && 'compatible' || 'needs adaptation' }})"
+          commit-message: "core: bump APP_REF ${{ steps.refs.outputs.current }} -> ${{ steps.refs.outputs.latest }}"
+          labels: core-update,${{ steps.compat.outcome == 'success' && 'compatible' || 'needs-adaptation' }}
+          add-paths: |
+            .github/workflows/
+            scripts/bootstrap-app.sh
+            package-lock.json
+          body: |
+            Upstream `saulpatinojr/HCW-AzMigrateOrchestrator_App` released **${{ steps.refs.outputs.latest }}** (this edition pinned `${{ steps.refs.outputs.current }}`).
+
+            Compatibility check in this workflow run (build upstream → install → `npm test` → Playwright e2e): **${{ steps.compat.outcome }}**.
+            Logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            - compatible → merge (automatic if the repository variable `CORE_AUTOMERGE` is `true`).
+            - needs adaptation → fix this edition on this branch, then merge.
+
+            ADR-0028, "downstream flow".
+      - if: steps.refs.outputs.changed == 'true' && steps.compat.outcome == 'success' && vars.CORE_AUTOMERGE == 'true' && steps.pr.outputs.pull-request-number != ''
+        name: Auto-merge the compatible bump
+        working-directory: HCW-AzMigrateOrchestrator_Addon
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: gh pr merge --squash --auto "${{ steps.pr.outputs.pull-request-number }}"
+      - if: steps.refs.outputs.changed == 'true' && steps.compat.outcome != 'success'
+        name: Surface the incompatibility
+        run: echo "::warning::Upstream ${{ steps.refs.outputs.latest }} is not compatible with this edition; see the pull request."

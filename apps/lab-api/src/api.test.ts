@@ -1,12 +1,13 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { defaultRulesDir } from "@amo/evidence-engine";
-import { noopLogger } from "@amo/observability";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { noopLogger } from "@hybridcloudworks/migration-core/observability";
 import { createDemoApi } from "./app.js";
 
-const root = join(defaultRulesDir(), "..");
+// Repository root from this file (apps/lab-api/dist/api.test.js); the rules now live inside the published core package.
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const sample = readFileSync(join(root, "samples", "resources-csv", "sample-resources.csv"), "utf8");
 const { server } = createDemoApi({ logger: noopLogger, sampleCsvPath: join(root, "samples", "resources-csv", "sample-resources.csv"), staticDir: join(root, "apps", "lab-web", "public") });
 await new Promise<void>((r) => server.listen(0, r));
@@ -88,7 +89,7 @@ test("Turnstile: enforced when a secret is configured, verified via siteverify",
 });
 
 test("workspace: disabled provider hides the feature; in-memory provider issues a one-time bundle token", async () => {
-  const { InMemoryWorkspaceProvider } = await import("@amo/workspace-provider");
+  const { InMemoryWorkspaceProvider } = await import("@hybridcloudworks/migration-core/workspace-provider");
   const { server: s4, store } = createDemoApi({ logger: noopLogger, workspaceProvider: new InMemoryWorkspaceProvider(), publicBaseUrl: "https://labs-api.example" });
   await new Promise<void>((r) => s4.listen(0, r));
   const b4 = `http://127.0.0.1:${(s4.address() as { port: number }).port}`;
