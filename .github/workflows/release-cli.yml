@@ -1,4 +1,4 @@
-# PIN-BY-SHA: see VALIDATION.md.
+# Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
 # Builds the single-executable `amo` CLI (Node SEA) for Linux, macOS and Windows on tags and attaches them to the release.
 name: release-cli
 on:
@@ -16,8 +16,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.4.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 22, cache: npm }
       - run: npm ci && npm run build
       - run: bash scripts/build-sea.sh
@@ -25,10 +25,14 @@ jobs:
       - name: Smoke test
         run: ./dist-sea/amo* rules validate
         shell: bash
-      - uses: actions/attest-build-provenance@v2.2.3
-        with: { subject-path: dist-sea/amo* }
-      - uses: actions/upload-artifact@v4.6.2
-        with: { name: amo-${{ matrix.os }}, path: dist-sea/amo* }
-      - uses: softprops/action-gh-release@v2.2.1
+      - uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        with:
+          subject-path: dist-sea/amo*
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: amo-${{ matrix.os }}
+          path: dist-sea/amo*
+      - uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         if: startsWith(github.ref, 'refs/tags/')
-        with: { files: dist-sea/amo* }
+        with:
+          files: dist-sea/amo*

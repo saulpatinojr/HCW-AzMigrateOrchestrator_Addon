@@ -1,4 +1,4 @@
-# PIN-BY-SHA: see VALIDATION.md.
+# Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
 # Pushes the guided-lab Coder template when it changes. Requires repository secrets CODER_URL and CODER_SESSION_TOKEN
 # (a template-admin token; never a personal admin token).
 name: coder-template
@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: lab
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: coder/setup-action@v1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: coder/setup-action@4a607a8113d4e676e2d7c34caa20a814bc88bfda # v1
       - name: Push template
         env:
           CODER_URL: ${{ secrets.CODER_URL }}

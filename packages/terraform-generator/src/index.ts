@@ -240,7 +240,8 @@ provider "azurerm" {
     `variable "source_subscription_id" { type = string }`,
     `variable "tenant_id" { type = string }`,
     `variable "source_tenant_id" { type = string }`,
-    `variable "location" { type = string${a.intent.destinationRegion ? `\n  default = ${hcl(a.intent.destinationRegion)}` : ""} }`,
+    // HCL forbids a single-line block that continues onto a second line; emit the multi-line form whenever a default is present.
+    a.intent.destinationRegion ? `variable "location" {\n  type    = string\n  default = ${hcl(a.intent.destinationRegion)}\n}` : `variable "location" { type = string }`,
     `variable "resource_group_name" { type = string }`,
     `variable "tags" {\n  type = map(string)\n  default = ${JSON.stringify({ "migration-source": "azure-migration-orchestrator", ...a.intent.requiredTags }, null, 2).replace(/"(\w[\w-]*)":/g, "$1 =").replace(/,\n/g, "\n")}\n}`,
     `variable "log_analytics_workspace_id" {\n  type    = string\n  default = null\n}`,
