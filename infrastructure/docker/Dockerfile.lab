@@ -5,7 +5,7 @@
 #   <ctx>/HCW-AzMigrateOrchestrator_App     (upstream product at APP_REF; provides the published packages)
 #   <ctx>/HCW-AzMigrateOrchestrator_Addon   (this repository)
 # docker build -f HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab .
-FROM node:22-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /srv
 COPY HCW-AzMigrateOrchestrator_App/package.json HCW-AzMigrateOrchestrator_App/package-lock.json HCW-AzMigrateOrchestrator_App/tsconfig.base.json HCW-AzMigrateOrchestrator_App/tsconfig.build.json ./HCW-AzMigrateOrchestrator_App/
 COPY HCW-AzMigrateOrchestrator_App/packages ./HCW-AzMigrateOrchestrator_App/packages
@@ -17,7 +17,7 @@ COPY HCW-AzMigrateOrchestrator_Addon/package.json HCW-AzMigrateOrchestrator_Addo
 COPY HCW-AzMigrateOrchestrator_Addon/apps ./HCW-AzMigrateOrchestrator_Addon/apps
 RUN cd HCW-AzMigrateOrchestrator_Addon && npm ci --no-audit --no-fund && npx tsc -b tsconfig.build.json --force && npm prune --omit=dev
 
-FROM node:22-bookworm-slim
+FROM node:26-bookworm-slim
 ENV NODE_ENV=production PORT=8080 AMO_STATIC_DIR=/srv/HCW-AzMigrateOrchestrator_Addon/apps/lab-web/public
 WORKDIR /srv/HCW-AzMigrateOrchestrator_Addon
 # Pull the latest Debian security fixes for the base image (Trivy gates publication on fixed HIGH/CRITICAL CVEs).
