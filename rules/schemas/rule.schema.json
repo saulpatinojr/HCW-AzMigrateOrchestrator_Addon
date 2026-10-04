@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hybridcloudworks.com/schemas/migration-rule.schema.json",
+  "title": "Azure migration support rule",
+  "description": "Versioned, evidence-backed support rule. Mirrors packages/domain/src/rule.ts; validated structurally by @amo/domain validateRule and by this schema in CI.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["ruleId", "ruleVersion", "provider", "resourceType", "sourceScope", "destinationScope", "tenantApplicability", "support", "recommendedPattern", "alternatives", "documentationSources", "reviewDate", "confidence", "requiredEvidence", "humanReviewRequired"],
+    "properties": {
+      "ruleId": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$" },
+      "ruleVersion": { "type": "string" },
+      "provider": { "type": "string" },
+      "resourceType": { "type": "string" },
+      "applicableApiVersions": { "type": "array", "items": { "type": "string" } },
+      "relevantSku": { "type": "array", "items": { "type": "string" } },
+      "tier": { "type": "array", "items": { "type": "string" } },
+      "operatingSystemConstraints": { "type": "array", "items": { "type": "string" } },
+      "featureConstraints": { "type": "array", "items": { "type": "string" } },
+      "sourceScope": { "type": "array", "minItems": 1, "items": { "enum": ["resource-group", "subscription", "region", "tenant"] } },
+      "destinationScope": { "type": "array", "minItems": 1, "items": { "enum": ["resource-group", "subscription", "region", "tenant"] } },
+      "sourceRegion": { "oneOf": [{ "const": "any" }, { "type": "array", "items": { "type": "string" } }] },
+      "destinationRegion": { "oneOf": [{ "const": "any" }, { "type": "array", "items": { "type": "string" } }] },
+      "tenantApplicability": { "enum": ["same-tenant", "cross-tenant", "any"] },
+      "support": {
+        "type": "object",
+        "required": ["resourceGroupMove", "subscriptionMove", "regionRelocation", "crossTenant"],
+        "additionalProperties": { "enum": ["supported", "conditional", "unsupported", "unknown"] }
+      },
+      "recommendedPattern": { "$ref": "#/$defs/pattern" },
+      "regionRelocationPattern": { "$ref": "#/$defs/pattern" },
+      "crossTenantPattern": { "$ref": "#/$defs/pattern" },
+      "alternatives": { "type": "array", "items": { "type": "string" } },
+      "documentationSources": {
+        "type": "array", "minItems": 1,
+        "items": { "type": "object", "required": ["title", "url", "retrievedOn"], "properties": { "title": { "type": "string" }, "url": { "type": "string", "format": "uri" }, "retrievedOn": { "type": "string", "format": "date" } } }
+      },
+      "reviewDate": { "type": "string", "format": "date" },
+      "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+      "exceptions": { "type": "array", "items": { "type": "string" } },
+      "requiredEvidence": { "type": "array", "items": { "type": "string" } },
+      "humanReviewRequired": { "type": "boolean" },
+      "precedence": { "type": "integer" },
+      "notes": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "$defs": {
+    "pattern": {
+      "type": "object",
+      "required": ["disposition", "tool", "infrastructure", "configuration", "identity", "data", "expectedDowntime"],
+      "properties": {
+        "disposition": { "enum": ["native-move", "orchestrated-migration", "recreate-and-migrate", "recreate-only", "retain", "retire", "replace", "redesign", "unknown-requires-validation"] },
+        "tool": { "type": "string" },
+        "infrastructure": { "type": "string" }, "configuration": { "type": "string" }, "identity": { "type": "string" }, "data": { "type": "string" },
+        "expectedDowntime": { "enum": ["none", "minutes", "hours", "unknown"] }
+      }
+    }
+  }
+}

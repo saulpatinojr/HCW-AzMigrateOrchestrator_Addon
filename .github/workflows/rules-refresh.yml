@@ -1,0 +1,29 @@
+# PIN-BY-SHA: see VALIDATION.md.
+# Evidence Agent in CI (ADR-0021): weekly diff of rules/azure against Microsoft Learn move-support tables → PR with the report.
+name: rules-refresh
+on:
+  schedule: [{ cron: "23 5 * * 1" }]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci && npm run build
+      - run: node scripts/refresh-rules-from-learn.mjs --out rules/reports
+      - uses: peter-evans/create-pull-request@v7.0.8
+        with:
+          branch: rules/learn-refresh
+          title: "rules: Microsoft Learn move-support diff"
+          commit-message: "rules: refresh Learn move-support diff report"
+          labels: rules
+          body: |
+            Automated report from `scripts/refresh-rules-from-learn.mjs`. **No rule was changed automatically.**
+            Review `rules/reports/learn-diff.md`; for each accepted change: edit `scripts/author-rules.mjs`, bump `ruleVersion`,
+            update `retrievedOn`, run `node scripts/author-rules.mjs && npm run build && npm run rules:validate`, then `amo rules snapshot`.
+          add-paths: rules/reports/

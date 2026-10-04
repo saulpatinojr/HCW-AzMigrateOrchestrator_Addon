@@ -1,0 +1,97 @@
+[
+  {
+    "ruleId": "azure.resources.resourcegroups",
+    "ruleVersion": "1.0.0",
+    "provider": "Microsoft.Resources",
+    "resourceType": "Microsoft.Resources/resourceGroups",
+    "applicableApiVersions": [
+      "*"
+    ],
+    "relevantSku": [
+      "*"
+    ],
+    "tier": [
+      "*"
+    ],
+    "operatingSystemConstraints": [],
+    "featureConstraints": [],
+    "sourceScope": [
+      "resource-group",
+      "subscription",
+      "region",
+      "tenant"
+    ],
+    "destinationScope": [
+      "resource-group",
+      "subscription",
+      "region",
+      "tenant"
+    ],
+    "sourceRegion": "any",
+    "destinationRegion": "any",
+    "tenantApplicability": "any",
+    "support": {
+      "resourceGroupMove": "unsupported",
+      "subscriptionMove": "unsupported",
+      "regionRelocation": "unsupported",
+      "crossTenant": "unsupported"
+    },
+    "recommendedPattern": {
+      "disposition": "recreate-only",
+      "tool": "terraform-redeploy",
+      "infrastructure": "recreate",
+      "configuration": "reconstruct",
+      "identity": "not-applicable",
+      "data": "not-applicable",
+      "expectedDowntime": "none"
+    },
+    "regionRelocationPattern": {
+      "disposition": "recreate-only",
+      "tool": "terraform-redeploy",
+      "infrastructure": "recreate",
+      "configuration": "reconstruct",
+      "identity": "not-applicable",
+      "data": "not-applicable",
+      "expectedDowntime": "none"
+    },
+    "crossTenantPattern": {
+      "disposition": "recreate-only",
+      "tool": "terraform-redeploy",
+      "infrastructure": "recreate",
+      "configuration": "reconstruct",
+      "identity": "reconstruct",
+      "data": "not-applicable",
+      "expectedDowntime": "hours"
+    },
+    "alternatives": [
+      "terraform-redeploy"
+    ],
+    "documentationSources": [
+      {
+        "title": "Move resources to a new resource group or subscription",
+        "url": "https://learn.microsoft.com/azure/azure-resource-manager/management/move-resource-group-and-subscription",
+        "retrievedOn": "2026-10-03"
+      }
+    ],
+    "reviewDate": "2027-04-03",
+    "confidence": 0.95,
+    "exceptions": [],
+    "requiredEvidence": [
+      "Confirm the resource's current configuration via authenticated inspection before relying on this rule."
+    ],
+    "humanReviewRequired": false,
+    "prerequisites": [],
+    "risks": [],
+    "mitigations": [],
+    "validation": [],
+    "rollback": [],
+    "crossTenantImplications": [
+      "Direct cross-tenant move is not an ARM operation; the supported native path is transferring the whole subscription to the destination directory, after which tenant-bound objects (role assignments, managed identities, Key Vault access, Entra-integrated auth) must be rebuilt.",
+      "If the subscription cannot be transferred, recreate in the destination tenant and migrate data separately."
+    ],
+    "precedence": 10,
+    "notes": [
+      "A resource group is a container; its location only stores metadata. Create the destination group and move/recreate the contents."
+    ]
+  }
+]

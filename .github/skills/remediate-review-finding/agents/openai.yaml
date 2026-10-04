@@ -1,0 +1,3 @@
+interface:
+  display_name: "Remediate Review Finding"
+  short_description: "GitHub-focused reusable review capability."

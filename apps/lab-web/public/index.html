@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hybrid Cloud Works Migration Explorer</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Hybrid Cloud Works · Education · Migration Labs</p>
+    <h1>Azure Resource Assessment <span class="badge">Demo</span></h1>
+    <p class="lede">Upload the <code>resources.csv</code> you export from the Azure portal and see how each resource would move: native ARM move, Azure Resource Mover, a migration service, or recreate-and-migrate with a separate data path.</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="notice" id="disclaimer">
+    <strong>What this demo is — and is not.</strong> This explorer analyses an exported inventory only. It never connects to an Azure tenant, never asks for credentials, and cannot execute migration actions. Results are rule-based illustrations labelled with their evidence state and confidence; they are not an authoritative Azure assessment. Uploads are processed in memory and expire automatically.
+  </section>
+
+  <section id="step-upload" class="card">
+    <h2>1. Upload an inventory</h2>
+    <p>Azure portal → <em>All resources</em> → <em>Export to CSV</em>. Or <a href="/api/sample.csv" download>download a synthetic sample</a>.</p>
+    <div id="drop" class="drop" tabindex="0" role="button" aria-label="Drop a CSV file here or press Enter to choose a file">
+      Drop <code>resources.csv</code> here, or <label class="link"><input type="file" id="file" accept=".csv,text/csv">choose a file</label>.
+    </div>
+    <div id="preview" hidden>
+      <h3>Preview</h3>
+      <p id="preview-meta" class="muted"></p>
+      <div class="table-wrap"><table id="preview-table"></table></div>
+      <p id="preview-warnings" class="warn"></p>
+    </div>
+  </section>
+
+  <section id="step-questions" class="card" hidden>
+    <h2>2. A few questions</h2>
+    <p class="muted">Only answers that change the analysis. Anything you skip is recorded as an assumption in the report.</p>
+    <form id="questions" class="grid">
+      <label>Destination region <input name="destinationRegion" placeholder="e.g. westus3"></label>
+      <label>Destination subscription ID (optional) <input name="destinationSubscriptionId" placeholder="00000000-…"></label>
+      <label>Destination resource group (optional) <input name="destinationResourceGroup" placeholder="rg-app-prod-wus3-01"></label>
+      <label>Operation
+        <select name="desiredOperation">
+          <option value="region-relocation">Move to another region</option>
+          <option value="resource-group-move">Move to another resource group</option>
+          <option value="subscription-move">Move to another subscription (same tenant)</option>
+          <option value="cross-tenant-migration">Migrate to another Microsoft Entra tenant</option>
+        </select></label>
+      <label>Same subscription? <select name="sameSubscription"><option value="">Not sure</option><option value="true">Yes</option><option value="false">No</option></select></label>
+      <label>Same tenant? <select name="sameTenant"><option value="">Not sure</option><option value="true">Yes</option><option value="false">No</option></select></label>
+      <label>Existing landing zone? <select name="existingLandingZone"><option value="">Not sure</option><option value="true">Yes</option><option value="false">No, greenfield</option></select></label>
+      <label>Environment <select name="environmentType"><option value="">Not sure</option><option>production</option><option>non-production</option><option>mixed</option></select></label>
+      <label>Downtime tolerance <select name="downtimeTolerance"><option value="">Not sure</option><option>none</option><option>minutes</option><option>hours</option><option>days</option></select></label>
+      <label>RTO (hours) <input name="rtoHours" type="number" min="0" step="0.5"></label>
+      <label>RPO (minutes) <input name="rpoMinutes" type="number" min="0"></label>
+      <label>Migration mode <select name="migrationMode"><option value="">Either</option><option>online</option><option>offline</option></select></label>
+      <label>Data residency constraint <input name="dataResidency" placeholder="e.g. EU only"></label>
+      <label>Public access policy <select name="publicAccessPolicy"><option value="">Unknown</option><option>allow</option><option>deny</option></select></label>
+      <label>Private endpoints required? <select name="privateEndpointsRequired"><option value="">Not sure</option><option value="true">Yes</option><option value="false">No</option></select></label>
+      <label>Tag that groups applications <input name="applicationGroupTagKey" value="application"></label>
+      <label class="span"><input type="checkbox" name="includeDataMigrationExamples" checked> Include data-migration examples</label>
+    </form>
+    <p class="muted small">We never ask for passwords, client secrets, tokens, storage keys, connection strings or certificates.</p>
+    <button id="run" class="primary">Run assessment</button>
+  </section>
+
+  <section id="step-progress" class="card" hidden>
+    <h2>3. Analysing</h2>
+    <ol id="progress" class="progress"></ol>
+  </section>
+
+  <section id="step-results" hidden>
+    <div class="card">
+      <h2>4. Summary</h2>
+      <div id="summary" class="summary"></div>
+      <div id="disclaimers" class="notice small"></div>
+      <div class="actions">
+        <a id="dl-zip" class="button" download>Download output bundle (.zip)</a>
+        <button id="delete" class="danger">Delete my data now</button>
+        <span id="expires" class="muted small"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Resources</h2>
+      <div class="filters">
+        <input id="search" placeholder="Search name or type">
+        <select id="f-disposition"><option value="">All dispositions</option></select>
+        <select id="f-confidence"><option value="">All confidence</option><option>high</option><option>medium</option><option>low</option></select>
+      </div>
+      <div class="table-wrap"><table id="decisions"><thead><tr><th>Resource</th><th>Type</th><th>Disposition</th><th>Infra</th><th>Data</th><th>Tool</th><th>Confidence</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card" id="detail" hidden></div>
+    <div class="card">
+      <h2>Waves (preliminary)</h2>
+      <div id="waves"></div>
+    </div>
+    <div class="card">
+      <h2>Missing information</h2>
+      <div id="missing"></div>
+    </div>
+    <div class="card">
+      <h2>Generated examples</h2>
+      <p class="muted small">Illustrative only — <strong>not for production</strong>. Every file is also in the bundle.</p>
+      <div class="tabs" id="file-tabs"></div>
+      <pre id="file-view"></pre>
+    </div>
+    <div class="card cta">
+      <h2>Need an assessment you can act on?</h2>
+      <p>The enterprise <strong>Azure Migration Orchestrator</strong> connects read-only to your tenant with Microsoft Entra ID, validates every rule against live configuration, and carries each resource through approval-gated migration waves.</p>
+      <a class="button" href="https://hybridcloudworks.com/contact">Talk to Hybrid Cloud Works</a>
+    </div>
+  </section>
+</main>
+<footer class="wrap muted small">Hybrid Cloud Works Migration Explorer · demo edition · no Azure connectivity by design.</footer>
+<script src="/app.js"></script>
+</body>
+</html>

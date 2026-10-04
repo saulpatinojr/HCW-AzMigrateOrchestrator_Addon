@@ -1,0 +1,1 @@
+{ "name": "@amo/lab-web", "version": "0.1.0", "private": true, "description": "Static UI for the Hybrid Cloud Works Migration Explorer; served by @amo/lab-api. No build step, no runtime dependencies." }

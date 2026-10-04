@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1.7
+# NOTE: pin images by digest (docker buildx imagetools inspect <image>) before production use — digests were not verifiable at build time (VALIDATION.md).
+# Hybrid Cloud Works Migration Explorer — demo API + static UI. No Azure SDKs, no credentials.
+FROM node:22-bookworm-slim AS build
+WORKDIR /src
+COPY package.json package-lock.json tsconfig.base.json tsconfig.build.json ./
+COPY packages ./packages
+COPY apps ./apps
+RUN npm ci --no-audit --no-fund && npm run build && npm prune --omit=dev
+
+FROM node:22-bookworm-slim
+ENV NODE_ENV=production PORT=8080 AMO_RULES_DIR=/app/rules AMO_STATIC_DIR=/app/apps/lab-web/public
+WORKDIR /app
+COPY --from=build /src/node_modules ./node_modules
+COPY --from=build /src/packages ./packages
+COPY --from=build /src/apps ./apps
+COPY --from=build /src/package.json ./
+COPY rules ./rules
+COPY samples/resources-csv ./samples/resources-csv
+RUN rm -rf packages/*/src apps/*/src && chown -R node:node /app
+USER node
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:8080/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "apps/lab-api/dist/server.js"]

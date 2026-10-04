@@ -1,0 +1,16 @@
+#cloud-config
+# Hostinger's Docker template ships Docker; this hardens the host and stages the lab.
+package_update: true
+packages: [ca-certificates, curl, git, ufw, unattended-upgrades]
+write_files:
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+runcmd:
+  - command -v docker >/dev/null || (curl -fsSL https://get.docker.com | sh)
+  - ufw default deny incoming && ufw default allow outgoing && ufw allow from ${operator_cidr} to any port 22 proto tcp && ufw --force enable
+  - mkdir -p /opt/amo && (git clone ${repo_url} /opt/amo/repo || (cd /opt/amo/repo && git pull))
+  - cd /opt/amo/repo && sed -i "s#ghcr.io/saulpatinojr/azure-migration-orchestrator-lab:latest#${image_ref}#" docker-compose.lab.yml
+  - cd /opt/amo/repo && docker compose -f docker-compose.lab.yml pull || true
+  # Compose is NOT started here: the operator places TUNNEL_TOKEN and TURNSTILE_SECRET in /opt/amo/repo/.env first.

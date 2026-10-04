@@ -1,0 +1,10 @@
+{
+  "name": "@amo/artifact-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "dependencies": { "@amo/domain": "0.1.0","@amo/report-engine": "0.1.0","@amo/terraform-generator": "0.1.0","@amo/runbook-generator": "0.1.0","@amo/validation-engine": "0.1.0" }
+}

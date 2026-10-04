@@ -1,0 +1,5 @@
+Azure Migration Orchestrator / Hybrid Cloud Works Migration Explorer
+Copyright (c) 2026 Hybrid Cloud Works. Licensed under MIT (see LICENSE); the owner may replace the license before publication (ADR-0016).
+
+Migration support rules under rules/azure are derived from public Microsoft Learn documentation, cited per rule with retrieval dates. Microsoft, Azure, Entra and related marks are trademarks of Microsoft Corporation. This project is not affiliated with or endorsed by Microsoft. Generated Terraform, scripts and runbooks are illustrative and not production-approved.
+The .github/ GitHub Copilot Code Reviewer pack is the owner's own prior work (docs/governance/).

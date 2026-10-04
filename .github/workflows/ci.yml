@@ -1,0 +1,58 @@
+# PIN-BY-SHA: actions are pinned by version tag in this build because commit SHAs could not be verified offline.
+# Replace each @vX.Y.Z with its commit SHA (e.g. via pinact or dependabot) before enabling branch protection on CI — VALIDATION.md.
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - run: npm run rules:validate
+      - name: Package repository ZIP (artifact)
+        run: bash scripts/package-repository.sh
+      - uses: actions/upload-artifact@v4.6.2
+        with: { name: hcw-azmigrateorchestrator-addon, path: hcw-azmigrateorchestrator-addon.zip, retention-days: 7 }
+
+  generated-terraform:
+    # Proves the generated bundle (not just the repo's own IaC) passes terraform validate.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci && npm run build
+      - run: node apps/cli/dist/main.js assess --csv samples/resources-csv/sample-resources.csv --out ./out --region westus3
+      - uses: hashicorp/setup-terraform@v3.1.2
+        with: { terraform_version: "1.9.8" }
+      - run: terraform -chdir=out/terraform fmt -recursive   # generated code is normalized, then must validate
+      - run: terraform -chdir=out/terraform init -backend=false -input=false
+      - run: terraform -chdir=out/terraform validate -no-color
+      - run: terraform -chdir=out/terraform/state-impact fmt -check -diff || true   # formatting advisory only
+      - run: terraform -chdir=out/terraform/hcp init -backend=false -input=false && terraform -chdir=out/terraform/hcp validate -no-color
+      - name: Check generated arguments against the real provider schema
+        run: |
+          terraform -chdir=out/terraform providers schema -json > /tmp/schema.json
+          node scripts/check-generated-arguments.mjs out/terraform/argument-manifest.json /tmp/schema.json
+
+  e2e:
+    # Browser e2e of the lab explorer (packages/ui through the harness against the real lab API).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci && npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env: { CI: "1" }
+      - uses: actions/upload-artifact@v4.6.2
+        if: failure()
+        with: { name: playwright-traces, path: test-results/, retention-days: 7 }

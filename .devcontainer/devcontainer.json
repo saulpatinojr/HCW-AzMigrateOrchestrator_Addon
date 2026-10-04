@@ -1,0 +1,12 @@
+{
+  "name": "azure-migration-orchestrator",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "postCreateCommand": "npm ci && npm run build",
+  "forwardPorts": [8080],
+  "customizations": { "vscode": { "extensions": ["hashicorp.terraform", "ms-vscode.powershell", "dbaeumer.vscode-eslint", "GitHub.copilot"] } }
+}

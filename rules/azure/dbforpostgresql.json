@@ -1,0 +1,104 @@
+[
+  {
+    "ruleId": "azure.dbforpostgresql.flexibleservers",
+    "ruleVersion": "1.0.0",
+    "provider": "Microsoft.DBforPostgreSQL",
+    "resourceType": "Microsoft.DBforPostgreSQL/flexibleServers",
+    "applicableApiVersions": [
+      "*"
+    ],
+    "relevantSku": [
+      "*"
+    ],
+    "tier": [
+      "*"
+    ],
+    "operatingSystemConstraints": [],
+    "featureConstraints": [
+      "Cross-region read replica promotion or geo-restore from geo-redundant backup; pg_dump/pg_restore for offline",
+      "Server parameters, firewall/VNet integration and Entra authentication are configuration to reconstruct"
+    ],
+    "sourceScope": [
+      "resource-group",
+      "subscription",
+      "region",
+      "tenant"
+    ],
+    "destinationScope": [
+      "resource-group",
+      "subscription",
+      "region",
+      "tenant"
+    ],
+    "sourceRegion": "any",
+    "destinationRegion": "any",
+    "tenantApplicability": "any",
+    "support": {
+      "resourceGroupMove": "supported",
+      "subscriptionMove": "supported",
+      "regionRelocation": "unsupported",
+      "crossTenant": "conditional"
+    },
+    "recommendedPattern": {
+      "disposition": "native-move",
+      "tool": "arm-move",
+      "infrastructure": "move-with-resource",
+      "configuration": "move-with-resource",
+      "identity": "reconstruct",
+      "data": "move-with-resource",
+      "expectedDowntime": "none"
+    },
+    "regionRelocationPattern": {
+      "disposition": "recreate-and-migrate",
+      "tool": "native-database-replication",
+      "infrastructure": "recreate",
+      "configuration": "reconstruct",
+      "identity": "reconstruct",
+      "data": "replicate",
+      "expectedDowntime": "minutes"
+    },
+    "crossTenantPattern": {
+      "disposition": "recreate-and-migrate",
+      "tool": "terraform-redeploy",
+      "infrastructure": "recreate",
+      "configuration": "reconstruct",
+      "identity": "reconstruct",
+      "data": "replicate",
+      "expectedDowntime": "hours"
+    },
+    "alternatives": [
+      "backup-and-restore",
+      "azure-database-migration-service",
+      "export-and-import"
+    ],
+    "documentationSources": [
+      {
+        "title": "Move operation support for resources",
+        "url": "https://learn.microsoft.com/azure/azure-resource-manager/management/move-support-resources",
+        "retrievedOn": "2026-10-03"
+      },
+      {
+        "title": "Relocate Azure Database for PostgreSQL flexible server",
+        "url": "https://learn.microsoft.com/azure/operational-excellence/relocation-postgresql-flexible-server",
+        "retrievedOn": "2026-10-03"
+      }
+    ],
+    "reviewDate": "2027-04-03",
+    "confidence": 0.75,
+    "exceptions": [],
+    "requiredEvidence": [
+      "Confirm the resource's current configuration via authenticated inspection before relying on this rule."
+    ],
+    "humanReviewRequired": false,
+    "prerequisites": [],
+    "risks": [],
+    "mitigations": [],
+    "validation": [],
+    "rollback": [],
+    "crossTenantImplications": [
+      "Direct cross-tenant move is not an ARM operation; the supported native path is transferring the whole subscription to the destination directory, after which tenant-bound objects (role assignments, managed identities, Key Vault access, Entra-integrated auth) must be rebuilt.",
+      "If the subscription cannot be transferred, recreate in the destination tenant and migrate data separately."
+    ],
+    "precedence": 10
+  }
+]

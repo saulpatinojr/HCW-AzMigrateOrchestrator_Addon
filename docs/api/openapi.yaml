@@ -1,0 +1,119 @@
+openapi: 3.1.0
+info:
+  title: Hybrid Cloud Works Migration Explorer API (demo edition)
+  version: 0.1.0
+  description: |
+    CSV-based assessment API. Never connects to Azure, never accepts credentials, never executes operations.
+    All assessment routes require the `x-owner-token` header issued at creation. Assessments expire (default 120 min).
+servers:
+  - url: /
+paths:
+  /api/health:
+    get:
+      summary: Liveness and edition facts
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, edition: { const: demo }, azureConnectivity: { const: disabled-by-design } } } } } }
+  /api/agents:
+    get:
+      summary: Agents that run in the demo edition
+      responses:
+        "200": { description: List of {id, name, purpose} }
+  /api/sample.csv:
+    get:
+      summary: Synthetic sample inventory
+      responses:
+        "200": { description: text/csv attachment }
+  /api/assessments:
+    post:
+      summary: Create an assessment from a resources.csv export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [csv]
+              properties:
+                csv: { type: string, maxLength: 5242880 }
+                fileName: { type: string, pattern: "^[\\w .()-]{1,120}\\.csv$" }
+                intent: { $ref: "#/components/schemas/MigrationIntentInput" }
+          text/csv:
+            schema: { type: string }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/CreateAssessmentResponse" } } } }
+        "400": { description: Invalid body, prohibited credential-shaped intent field, or bad file name }
+        "413": { description: Body exceeds 5 MB }
+        "422": { description: CSV could not be ingested (missing NAME/TYPE columns, empty, binary) }
+  /api/assessments/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { $ref: "#/components/parameters/OwnerToken" }
+    get:
+      summary: Full assessment (decisions, waves, progress, safety findings) and bundle file list
+      responses:
+        "200": { description: OK }
+        "404": { description: Not found, expired, or owner token missing/invalid (indistinguishable by design) }
+    delete:
+      summary: Immediately delete the assessment and all derived data
+      responses:
+        "200": { description: Deleted }
+        "404": { description: Not found / wrong token }
+  /api/assessments/{id}/bundle.zip:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { $ref: "#/components/parameters/OwnerToken" }
+    get:
+      summary: Download the assessment-output bundle (STORE zip)
+      responses:
+        "200": { description: application/zip }
+  /api/assessments/{id}/files/{path}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: path, in: path, required: true, schema: { type: string }, description: URL-encoded bundle path, e.g. terraform%2Fmain.tf }
+      - { $ref: "#/components/parameters/OwnerToken" }
+    get:
+      summary: One generated file
+      responses:
+        "200": { description: File content with a type-appropriate content-type }
+  /api/execute:
+    post:
+      summary: Deliberately absent execution surface
+      description: Always 403. Exists so the authorization gate's refusal is observable (demo max level = planning).
+      responses:
+        "403": { description: execution_disabled }
+components:
+  parameters:
+    OwnerToken: { name: x-owner-token, in: header, required: true, schema: { type: string } }
+  schemas:
+    MigrationIntentInput:
+      type: object
+      description: Questionnaire answers. Keys containing password/secret/token/key/connectionstring/credential/certificate are rejected.
+      properties:
+        desiredOperation: { enum: [resource-group-move, subscription-move, region-relocation, cross-tenant-migration, modernization, disaster-recovery] }
+        destinationRegion: { type: string }
+        sameSubscription: { type: boolean }
+        sameTenant: { type: boolean }
+        existingLandingZone: { type: boolean }
+        environmentType: { enum: [production, non-production, mixed] }
+        downtimeTolerance: { enum: [none, minutes, hours, days] }
+        rtoHours: { type: number }
+        rpoMinutes: { type: number }
+        migrationMode: { enum: [online, offline, either] }
+        sourceAvailableDuringSync: { type: boolean }
+        dataResidency: { type: string }
+        regulatoryRestrictions: { type: array, items: { type: string } }
+        namingPrefix: { type: string }
+        requiredTags: { type: object, additionalProperties: { type: string } }
+        applicationGroupTagKey: { type: string }
+        publicAccessPolicy: { enum: [allow, deny, unknown] }
+        privateEndpointsRequired: { type: boolean }
+        includeDataMigrationExamples: { type: boolean }
+    CreateAssessmentResponse:
+      type: object
+      properties:
+        assessmentId: { type: string, format: uuid }
+        ownerToken: { type: string, description: Shown once; required for every later call }
+        expiresAt: { type: string, format: date-time }
+        summary: { type: object }
+        progress: { type: array, items: { type: object, properties: { at: { type: string }, agent: { type: string }, message: { type: string }, status: { enum: [started, completed, skipped, failed] } } } }
+        ingestionWarnings: { type: array, items: { type: string } }

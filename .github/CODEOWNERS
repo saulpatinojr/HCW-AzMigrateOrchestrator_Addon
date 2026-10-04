@@ -1,0 +1,10 @@
+# Default owner: repository owner. Rules and security-sensitive surfaces require owner review.
+*                                   @saulpatinojr
+/rules/                             @saulpatinojr
+/packages/classification-engine/    @saulpatinojr
+/packages/agents/                   @saulpatinojr
+/apps/lab-api/                      @saulpatinojr
+/infrastructure/                    @saulpatinojr
+/.github/                           @saulpatinojr
+/packages/ui/                       @saulpatinojr
+/apps/cli/                          @saulpatinojr

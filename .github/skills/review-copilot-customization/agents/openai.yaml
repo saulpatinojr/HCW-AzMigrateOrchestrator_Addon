@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Copilot Customization"
+  short_description: "GitHub-focused reusable review capability."

@@ -1,0 +1,36 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../packages/domain"
+    },
+    {
+      "path": "../../packages/contracts"
+    },
+    {
+      "path": "../../packages/agents"
+    },
+    {
+      "path": "../../packages/artifact-generator"
+    },
+    {
+      "path": "../../packages/authorization"
+    },
+    {
+      "path": "../../packages/observability"
+    },
+    {
+      "path": "../../packages/workspace-provider"
+    },
+    {
+      "path": "../../packages/evidence-engine"
+    }
+  ]
+}

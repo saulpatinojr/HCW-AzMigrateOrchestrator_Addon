@@ -1,0 +1,23 @@
+# PIN-BY-SHA: see VALIDATION.md.
+# Pushes the guided-lab Coder template when it changes. Requires repository secrets CODER_URL and CODER_SESSION_TOKEN
+# (a template-admin token; never a personal admin token).
+name: coder-template
+on:
+  push:
+    branches: [main]
+    paths: ["infrastructure/coder/template/**", ".github/workflows/coder-template.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  push-template:
+    runs-on: ubuntu-latest
+    environment: lab
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: coder/setup-action@v1
+      - name: Push template
+        env:
+          CODER_URL: ${{ secrets.CODER_URL }}
+          CODER_SESSION_TOKEN: ${{ secrets.CODER_SESSION_TOKEN }}
+        run: coder templates push amo-guided-lab --directory infrastructure/coder/template --yes --message "${{ github.sha }}"

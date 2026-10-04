@@ -1,0 +1,26 @@
+# PIN-BY-SHA: actions are pinned by version tag in this build because commit SHAs could not be verified offline.
+# Replace each @vX.Y.Z with its commit SHA (e.g. via pinact or dependabot) before enabling branch protection on CI — VALIDATION.md.
+name: iac-validate
+on:
+  pull_request:
+    paths: ["infrastructure/terraform/**", ".github/workflows/iac-validate.yml"]
+  push:
+    branches: [main]
+    paths: ["infrastructure/terraform/**"]
+permissions:
+  contents: read
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: [infrastructure/terraform/lab-hostinger, infrastructure/terraform/lab-cloudflare, infrastructure/coder/template]
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: hashicorp/setup-terraform@v3.1.2
+        with: { terraform_version: "1.9.8" }
+      - run: terraform -chdir=${{ matrix.dir }} fmt -recursive -check -diff
+      - run: terraform -chdir=${{ matrix.dir }} init -backend=false -input=false
+      - run: terraform -chdir=${{ matrix.dir }} validate -no-color
+      - uses: aquasecurity/trivy-action@0.29.0
+        with: { scan-type: config, scan-ref: "${{ matrix.dir }}", exit-code: "1", severity: "HIGH,CRITICAL" }

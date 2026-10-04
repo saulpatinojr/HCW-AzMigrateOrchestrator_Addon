@@ -1,0 +1,21 @@
+[
+  {
+    "ruleId": "org.example.storage.pci-scope",
+    "ruleVersion": "1.0.0",
+    "provider": "Microsoft.Storage",
+    "resourceType": "Microsoft.Storage/storageAccounts",
+    "sourceScope": ["region"],
+    "destinationScope": ["region"],
+    "tenantApplicability": "any",
+    "support": { "resourceGroupMove": "supported", "subscriptionMove": "supported", "regionRelocation": "unsupported", "crossTenant": "unsupported" },
+    "recommendedPattern": { "disposition": "recreate-and-migrate", "tool": "azure-storage-mover", "infrastructure": "recreate", "configuration": "reconstruct", "identity": "reconstruct", "data": "sync-and-cutover", "expectedDowntime": "hours" },
+    "alternatives": ["azcopy"],
+    "documentationSources": [{ "title": "Organizational standard: data transfer tooling", "url": "https://learn.microsoft.com/azure/storage-mover/service-overview", "retrievedOn": "2026-10-03" }],
+    "reviewDate": "2027-04-03",
+    "confidence": 0.9,
+    "requiredEvidence": ["Tag 'compliance' = 'pci' present"],
+    "humanReviewRequired": true,
+    "precedence": 100,
+    "notes": ["Example overlay only; disabled by file extension."]
+  }
+]

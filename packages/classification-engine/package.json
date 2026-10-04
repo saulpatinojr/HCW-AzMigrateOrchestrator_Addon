@@ -1,0 +1,10 @@
+{
+  "name": "@amo/classification-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "dependencies": { "@amo/domain": "0.1.0","@amo/evidence-engine": "0.1.0","@amo/dependency-graph": "0.1.0","@amo/landing-zone": "0.1.0" }
+}
