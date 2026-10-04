@@ -8,7 +8,7 @@ The explorer is the published package `@hybridcloudworks/migration-ui`, released
 `saulpatinojr/HCW-AzMigrateOrchestrator_App` (ADR-0028). Install it at an exact version:
 
 ```bash
-npm install --save-exact @hybridcloudworks/migration-ui@0.2.0 --workspace=frontend
+npm install --save-exact @hybridcloudworks/migration-ui@0.2.1 --workspace=frontend
 ```
 
 Peer deps `react`/`react-dom` are already present. Add the package to the Tailwind source scan in the site's CSS entry:

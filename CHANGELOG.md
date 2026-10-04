@@ -5,6 +5,7 @@ The engine, rules, CLI and UI components are versioned and released upstream in 
 
 ## Unreleased — 2026-10-04 (ADR-0028 flip)
 
+- README rewritten for the public repository: badges, relationship diagram, a "Connecting the website" section for the site repository review, release contract; `docs/README.md` and `infrastructure/README.md` indexes (experimental templates marked as such). GitHub description, homepage and topics set.
 - Node 26 runtime floor (ADR-0029, coordinated with upstream): `engines.node >=26`, `@types/node ^26.6.4`, `setup-node 26` in every workflow, `node:26-bookworm-slim` in the lab image, Node 26 devcontainer.
 
 - This repository became the **downstream web-front edition**: it now holds only the CSV lab API, the static harness, the
