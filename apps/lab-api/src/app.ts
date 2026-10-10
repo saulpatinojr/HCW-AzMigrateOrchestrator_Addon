@@ -294,7 +294,13 @@ export function clientAddress(req: IncomingMessage, trustProxy = false): string 
     const first = (Array.isArray(xff) ? xff[0] : xff)?.split(",")[0]?.trim();
     if (first) return first;
   }
-  return req.socket.remoteAddress ?? undefined;
+  return normalizeAddress(req.socket.remoteAddress);
+}
+
+/** An IPv4-mapped IPv6 socket address (`::ffff:127.0.0.1`, what a dual-stack listener reports) is keyed as its IPv4 form. */
+function normalizeAddress(address: string | undefined): string | undefined {
+  if (!address) return undefined;
+  return address.toLowerCase().startsWith("::ffff:") ? address.slice(7) : address;
 }
 
 /** Turnstile server-side verification (siteverify). */

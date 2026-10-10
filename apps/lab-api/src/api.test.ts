@@ -146,14 +146,18 @@ test("framing: default frame-ancestors 'none' sends DENY; a configured list drop
   assert.ok(idx.headers.get("content-security-policy")?.includes("frame-ancestors 'none'"));
   assert.equal(idx.headers.get("x-frame-options"), "DENY");
   assert.ok(idx.headers.get("content-security-policy")?.includes("base-uri 'none'; form-action 'self'"));
-  assert.ok(!idx.headers.get("content-security-policy")?.includes("challenges.cloudflare.com"), "no widget origin without a site key");
+  const devDirectives = cspDirectives(idx.headers.get("content-security-policy"));
+  assert.equal(devDirectives.get("script-src"), "'self'", "no widget origin in script-src without a site key");
+  assert.equal(devDirectives.has("frame-src"), false, "no frame-src without a site key");
   const s = await listen({ ...dev, frameAncestors: ["'self'", "https://hybridcloudworks.com", "https://www.hybridcloudworks.com"], turnstileSecret: "s", turnstileSiteKey: "1x00000000000000000000AA" });
   try {
     const r = await fetch(`${s.url}/api/health`);
     const csp = r.headers.get("content-security-policy") ?? "";
     assert.ok(csp.includes("frame-ancestors 'self' https://hybridcloudworks.com https://www.hybridcloudworks.com"), csp);
     assert.equal(r.headers.get("x-frame-options"), null);
-    assert.ok(csp.includes("script-src 'self' https://challenges.cloudflare.com") && csp.includes("frame-src https://challenges.cloudflare.com"), csp);
+    const directives = cspDirectives(csp);
+    assert.equal(directives.get("script-src"), "'self' https://challenges.cloudflare.com", csp);
+    assert.equal(directives.get("frame-src"), "https://challenges.cloudflare.com", csp);
   } finally { s.server.close(); }
 });
 
@@ -240,3 +244,13 @@ test("client address: socket peer by default; first x-forwarded-for value only w
     assert.ok(!seen.some((b) => b.includes("198.51.100.1")), "cf-connecting-ip is never read");
   } finally { socketOnly.server.close(); proxied.server.close(); }
 });
+
+/** The CSP header as a directive map, so tests compare whole directive values rather than substrings. */
+function cspDirectives(header: string | null | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const part of (header ?? "").split(";")) {
+    const [name, ...rest] = part.trim().split(/\s+/);
+    if (name) out.set(name, rest.join(" "));
+  }
+  return out;
+}
