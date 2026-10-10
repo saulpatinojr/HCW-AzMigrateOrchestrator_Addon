@@ -11,7 +11,7 @@
     "samples/resources-csv/sample-resources.csv",
     "scripts/package-repository.sh", "scripts/package-repository.ps1", "scripts/bootstrap-app.sh",
     ".github/copilot-instructions.md", ".github/workflows/ci.yml", ".github/workflows/core-update.yml", ".github/workflows/publish-images.yml", ".github/workflows/iac-validate.yml",
-    "infrastructure/docker/Dockerfile.lab", "infrastructure/terraform/lab-hostinger/main.tf", "infrastructure/terraform/lab-cloudflare/main.tf", "infrastructure/coder/template/main.tf",
+    "infrastructure/docker/Dockerfile.lab", "infrastructure/coder/template/main.tf",
     "apps/lab-api/src/app.ts", "apps/lab-api/src/server.ts", "apps/lab-web/index.html", "apps/lab-web/src/main.tsx", "apps/lab-web/src/PaneApp.tsx", "apps/lab-web/src/pane.ts",
     "tests/e2e/lab.spec.ts", "tests/e2e/host-page.html", "tests/e2e/siteverify-mock.mjs", "tests/security/edition-boundary.test.mjs", "tests/contract/openapi-routes.test.mjs"
   ],

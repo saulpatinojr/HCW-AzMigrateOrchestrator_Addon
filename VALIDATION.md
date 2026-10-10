@@ -62,7 +62,8 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
 - `core-update` pull requests are opened with `GITHUB_TOKEN`, so they do not trigger the `ci` workflow themselves; the
   compatibility evidence is the `core-update` run linked in the PR body.
 - Playwright e2e ran locally on 2026-10-10 (Chromium downloaded) and on GitHub-hosted runners; earlier sandboxes blocked the download.
-- `infrastructure/terraform/lab-hostinger` and `lab-cloudflare` are retired (2026-10-10) and no longer validated by
-  `iac-validate`; they are deleted in a follow-up pull request.
+- The standalone lab Terraform (`infrastructure/terraform/lab-hostinger`, `lab-cloudflare`), the tunnel edge notes
+  (`infrastructure/reverse-proxy`) and `docs/deployment/vps.md` were retired on 2026-10-10 and deleted; `iac-validate`
+  covers the Coder template only. ADR-0019 stays as the record of the retired edge.
 - Human verification against the real siteverify endpoint, the website's `addons` role on the live host, Coder workspace
   creation against a live deployment and the workspace image build were not executed.

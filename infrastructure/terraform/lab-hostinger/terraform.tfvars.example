@@ -1,4 +1,0 @@
-data_center_id = 0            # [VERIFY] from GET /api/vps/v1/data-centers
-template_id    = 0            # [VERIFY] Ubuntu 24.04 Docker template from GET /api/vps/v1/templates
-ssh_public_key = "ssh-ed25519 AAAA... ops@hybridcloudworks"
-operator_cidr  = "203.0.113.10/32"
