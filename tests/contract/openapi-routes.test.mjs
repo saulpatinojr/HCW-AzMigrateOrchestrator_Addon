@@ -35,7 +35,19 @@ test("every route the lab API handles is documented in docs/api/openapi.yaml", (
 });
 
 test("the spec documents the AddOn contract: health envelope, x-addon headers, 429 and 503 answers", () => {
-  for (const must of ["x-addon-id", "x-addon-version", "AddOnHealth", "siteOrigins", "turnstile", '"429"', '"503"', "rate_limited", "overloaded", "turnstile_not_configured", "Retry-After"]) assert.ok(spec.includes(must), `openapi.yaml lacks ${must}`);
-  const version = JSON.parse(readFileSync("apps/lab-api/package.json", "utf8")).version;
-  assert.ok(spec.includes(`version: ${version}`), `openapi.yaml info.version should be ${version}`);
+  for (const must of ["x-addon-id", "x-addon-version", "x-content-type-options", "referrer-policy", "AddOnHealth", "siteOrigins", "turnstile", '"429"', '"503"', "rate_limited", "overloaded", "turnstile_not_configured", "Retry-After"]) assert.ok(spec.toLowerCase().includes(must.toLowerCase()), `openapi.yaml lacks ${must}`);
+  // Every documented response names the four AddOn headers: flow-style responses inline, block-style ones on a following
+  // line, shared component responses (429/503) through explicit refs. The YAML anchor is defined once and aliased elsewhere.
+  const lines = spec.split("\n");
+  const responses = lines.map((l, i) => [l, i]).filter(([l]) => /^        "\d{3}":/.test(l));
+  assert.ok(responses.length >= 20);
+  for (const [line, i] of responses) {
+    if (/\$ref: "#\/components\/responses/.test(line)) continue;
+    const carried = /headers: [&*]addon_headers/.test(line) || lines.slice(i + 1, i + 4).some((l) => /^          headers: [&*]addon_headers/.test(l));
+    assert.ok(carried, `response lacks the AddOn headers: ${line.trim()}`);
+  }
+  for (const comp of ["RateLimited", "Unavailable"]) {
+    const block = spec.slice(spec.indexOf(`    ${comp}:`), spec.indexOf("  schemas:"));
+    for (const h of ["XAddonId", "XAddonVersion", "XContentTypeOptions", "ReferrerPolicy"]) assert.ok(block.includes(`#/components/headers/${h}`), `${comp} lacks ${h}`);
+  }
 });

@@ -22,7 +22,7 @@ hybridcloudworks.com lab host as one hardened container created by the website r
 | `AMO_FRAME_ANCESTORS` | `'self' https://hybridcloudworks.com https://www.hybridcloudworks.com` | Equals `caddy_frame_ancestors`, so CSP and Caddy agree |
 | `AMO_SITE_ORIGINS` | `https://hybridcloudworks.com https://www.hybridcloudworks.com` | Pane message targets |
 | `AMO_TRUST_PROXY` | `1` | Caddy sets `X-Forwarded-For`; nothing else reaches the loopback port |
-| `AMO_TURNSTILE_SITE_KEY` | the widget's site key | Public; published by `/api/health` |
+| `AMO_TURNSTILE_SITE_KEY` | the widget's site key | Public; published by `/api/health`. Required with the secret: without it the container refuses to start |
 | `AMO_RATE_LIMIT_POSTS` / `AMO_RATE_LIMIT_WINDOW_MINUTES` / `AMO_MAX_CONCURRENT` | `10` / `10` / `2` | Defaults; override per host |
 | `AMO_ASSESSMENT_TTL_MINUTES` | `120` | |
 | `AMO_PUBLIC_BASE_URL` | `https://migration.lab.hybridcloudworks.com` | |

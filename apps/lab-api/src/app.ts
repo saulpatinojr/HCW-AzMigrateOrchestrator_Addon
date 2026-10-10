@@ -17,6 +17,7 @@ export const ADDON_ID = "migration";
 export const ADDON_VERSION: string = (createRequire(import.meta.url)("../package.json") as { version: string }).version;
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 const DEFAULT_SITEVERIFY_URL = `${TURNSTILE_ORIGIN}/turnstile/v0/siteverify`;
+const SITEVERIFY_TIMEOUT_MS = 5000;
 
 export interface RateLimitOptions {
   /** Anonymous mutating requests one client address may make per window (token bucket; refills continuously). */
@@ -35,6 +36,8 @@ export interface DemoApiOptions {
   allowNoTurnstile?: boolean;
   /** Override of the siteverify endpoint (e2e mock). */
   siteverifyUrl?: string;
+  /** Upper bound on one siteverify call; past it the verdict is a failed `siteverify-timeout` (fail closed). Default 5000. */
+  siteverifyTimeoutMs?: number;
   /** Injectable for tests. */
   fetchImpl?: typeof fetch;
   staticDir?: string;
@@ -77,6 +80,7 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
   const siteKey = opts.turnstileSiteKey?.trim() || null;
   const turnstileRequired = Boolean(opts.turnstileSecret);
   const siteverifyUrl = opts.siteverifyUrl ?? DEFAULT_SITEVERIFY_URL;
+  const siteverifyTimeoutMs = opts.siteverifyTimeoutMs ?? SITEVERIFY_TIMEOUT_MS;
   const rateLimit: RateLimitOptions = opts.rateLimit ?? { postsPerWindow: 10, windowMs: 10 * 60000 };
   const maxConcurrent = opts.maxConcurrent ?? 2;
   const buckets = new Map<string, { tokens: number; updatedAt: number }>();
@@ -86,10 +90,9 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
   // with a secret the pane needs the public site key, so a missing key is a configuration error, not a silent widget-less page.
   if (!turnstileRequired && !opts.allowNoTurnstile) log.warn("TURNSTILE_SECRET is not set: POST /api/assessments answers 503 turnstile_not_configured (set AMO_ALLOW_NO_TURNSTILE=1 for local development only)");
   if (!turnstileRequired && opts.allowNoTurnstile) log.warn("AMO_ALLOW_NO_TURNSTILE=1: uploads are accepted without human verification; local development and e2e only");
-  if (turnstileRequired && !siteKey) {
-    if (!opts.allowNoTurnstile) throw new Error("TURNSTILE_SECRET is set but AMO_TURNSTILE_SITE_KEY is empty: the pane could not render the widget. Set the site key, or AMO_ALLOW_NO_TURNSTILE=1 for local development only.");
-    log.warn("TURNSTILE_SECRET is set without AMO_TURNSTILE_SITE_KEY; verification is enforced but the pane cannot obtain a token");
-  }
+  // Unconditional: the bypass flag covers only the no-secret case. A secret without the public site key would enforce a
+  // verification the pane can never pass, so the server refuses to start rather than serve a dead upload form.
+  if (turnstileRequired && !siteKey) throw new Error("TURNSTILE_SECRET is set but AMO_TURNSTILE_SITE_KEY is empty: the pane could not render the widget, so no upload could ever pass verification. Set the site key published by the widget.");
 
   const securityHeaders = (): Record<string, string> => {
     const csp = [
@@ -115,6 +118,11 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
     res.end(JSON.stringify(body));
   };
   const error = (res: ServerResponse, status: number, code: string, message: string, details?: unknown, extra: Record<string, string> = {}): void => json(res, status, { error: { code, message, details } }, extra);
+  /** Answers without reading the body and closes the connection once the answer has flushed, so an unread upload can neither be buffered nor hold the socket. */
+  const refuse = (req: IncomingMessage, res: ServerResponse, status: number, code: string, message: string): void => {
+    res.writeHead(status, { "content-type": "application/json; charset=utf-8", ...securityHeaders(), connection: "close" });
+    res.end(JSON.stringify({ error: { code, message } }), () => req.destroy());
+  };
 
   const allowed = new Set((opts.allowedOrigins ?? []).map((o) => o.replace(/\/$/, "")));
   const fetchImpl = opts.fetchImpl ?? fetch.bind(globalThis);
@@ -163,7 +171,8 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
         if (wait > 0) return error(res, 429, "rate_limited", "too many requests from this client; try again later", { retryAfterSeconds: wait }, { "retry-after": String(wait) });
       }
       if (url.pathname === "/api/assessments" && req.method === "POST") {
-        if (!turnstileRequired && !opts.allowNoTurnstile) return error(res, 503, "turnstile_not_configured", "human verification is not configured on this deployment");
+        // Fail closed before touching the body: the answer goes out at once and the connection is closed behind it.
+        if (!turnstileRequired && !opts.allowNoTurnstile) return refuse(req, res, 503, "turnstile_not_configured", "human verification is not configured on this deployment");
         const raw = await readBody(req, API_LIMITS.maxUploadBytes + 64 * 1024);
         if (raw === null) return error(res, 413, "too_large", `request exceeds ${API_LIMITS.maxUploadBytes} bytes`);
         let body: unknown;
@@ -174,16 +183,20 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
         }
         const parsed = parseCreateAssessmentRequest(body);
         if (!parsed.ok) return json(res, 400, parsed.error);
-        if (opts.turnstileSecret) {
-          const tt = req.headers["x-turnstile-token"];
-          const verdict = await verifyTurnstile(opts.turnstileSecret, Array.isArray(tt) ? tt[0] : tt, clientAddress(req, opts.trustProxy), fetchImpl, siteverifyUrl);
-          if (!verdict.ok) return error(res, 403, "turnstile_failed", "human verification failed", { codes: verdict.codes });
-        }
+        // The concurrency bound covers verification as well as the assessment: a slow or stalled verification endpoint
+        // (itself capped by the siteverify timeout) can hold at most maxConcurrent requests, never every connection.
         if (inFlight >= maxConcurrent) return error(res, 503, "overloaded", "the lab is busy; try again in a few seconds", { retryAfterSeconds: 5 }, { "retry-after": "5" });
         const t0 = Date.now();
         inFlight++;
         let result: Awaited<ReturnType<typeof orchestrator.assessCsv>>;
-        try { result = await orchestrator.assessCsv(parsed.value.csv, parsed.value.intent ?? {}); } finally { inFlight--; }
+        try {
+          if (opts.turnstileSecret) {
+            const tt = req.headers["x-turnstile-token"];
+            const verdict = await verifyTurnstile(opts.turnstileSecret, Array.isArray(tt) ? tt[0] : tt, clientAddress(req, opts.trustProxy), fetchImpl, siteverifyUrl, siteverifyTimeoutMs);
+            if (!verdict.ok) return error(res, 403, "turnstile_failed", "human verification failed", { codes: verdict.codes });
+          }
+          result = await orchestrator.assessCsv(parsed.value.csv, parsed.value.intent ?? {});
+        } finally { inFlight--; }
         const { assessment, bundle } = result;
         const stored = store.put(assessment, bundle);
         if (opts.telemetry) {
@@ -303,16 +316,25 @@ function normalizeAddress(address: string | undefined): string | undefined {
   return address.toLowerCase().startsWith("::ffff:") ? address.slice(7) : address;
 }
 
-/** Turnstile server-side verification (siteverify). */
-export async function verifyTurnstile(secret: string, token: string | undefined, remoteip: string | undefined, fetchImpl: typeof fetch, siteverifyUrl = DEFAULT_SITEVERIFY_URL): Promise<{ ok: boolean; codes: string[] }> {
+/**
+ * Turnstile server-side verification (siteverify), bounded by `timeoutMs`: the call is aborted through its signal and raced
+ * against the timer (so a fetch that ignores the signal still ends), and a timeout is a failed verdict, never a pass.
+ */
+export async function verifyTurnstile(secret: string, token: string | undefined, remoteip: string | undefined, fetchImpl: typeof fetch, siteverifyUrl = DEFAULT_SITEVERIFY_URL, timeoutMs = SITEVERIFY_TIMEOUT_MS): Promise<{ ok: boolean; codes: string[] }> {
   if (!token) return { ok: false, codes: ["missing-input-response"] };
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), timeoutMs);
+  const expiry = new Promise<never>((_, reject) => ctl.signal.addEventListener("abort", () => reject(new Error("siteverify-timeout")), { once: true }));
   try {
     const body = new URLSearchParams({ secret, response: token });
     if (remoteip) body.set("remoteip", remoteip);
-    const res = await fetchImpl(siteverifyUrl, { method: "POST", body, headers: { "content-type": "application/x-www-form-urlencoded" } });
-    const data = (await res.json()) as { success: boolean; "error-codes"?: string[] };
+    const res = await Promise.race([fetchImpl(siteverifyUrl, { method: "POST", body, headers: { "content-type": "application/x-www-form-urlencoded" }, signal: ctl.signal }), expiry]);
+    const data = (await Promise.race([res.json(), expiry])) as { success: boolean; "error-codes"?: string[] };
     return { ok: data.success === true, codes: data["error-codes"] ?? [] };
-  } catch (e) {
-    return { ok: false, codes: ["siteverify-unreachable"] };
+  } catch {
+    return { ok: false, codes: [ctl.signal.aborted ? "siteverify-timeout" : "siteverify-unreachable"] };
+  } finally {
+    clearTimeout(timer);
+    expiry.catch(() => {});
   }
 }

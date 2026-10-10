@@ -21,6 +21,15 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
   `/` is `no-cache` with the configured `frame-ancestors` and no `x-frame-options`, `/assets/*` is immutable, the start-up
   warning names the allow flag; all workflow files parse; the `node:26-bookworm-slim` index digest was resolved from Docker
   Hub (`sha256:86f07bc9…`) and is the pin in `Dockerfile.lab` (marked [VERIFY] for the first production publish).
+- **Review round 1 (Copilot, PR #4, 2026-10-10), same environment:** `npm run typecheck`; `npm test` — **26 pass, 0 fail**
+  (the 23 above plus: the fail-closed 503 is answered before the body is read, with `connection: close`, and a 6 MB upload
+  against it is cut or answered within the bound; a secret without a site key refuses to start even with the bypass flag;
+  a stalled verification endpoint yields `403 siteverify-timeout` within the bound, holds one of the `maxConcurrent`
+  slots so a second request gets `503 overloaded`, and a fetch that ignores the abort signal still times out — in
+  `api.test.ts`; `config.test.ts` covers the environment mapping and the refusal of `0`, negative, fractional and
+  non-numeric `AMO_RATE_LIMIT_POSTS`, `AMO_RATE_LIMIT_WINDOW_MINUTES`, `AMO_MAX_CONCURRENT` and TTL values; the contract test
+  checks that every documented response carries the four AddOn header components); `npm run e2e` — **5 pass**;
+  `docs/api/openapi.yaml` parses as YAML (PyYAML) with the shared `addon_headers` anchor resolving on all 26 responses.
 - **Not executed locally (CI only):** `docker build` of `Dockerfile.lab` and the Trivy scan (no daemon); `publish-images.yml`
   against Docker Hub (the OIDC connection and the `DOCKERHUB_*` variables are owner steps); the website's `addons` role,
   Caddy route and status proxy (Phase 6, website repository); verification against the real siteverify endpoint.

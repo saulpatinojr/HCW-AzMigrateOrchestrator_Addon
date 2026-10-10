@@ -36,6 +36,15 @@ UI package. It frames `https://migration.lab.hybridcloudworks.com/` at `/tools/m
 - **Docs:** website integration rewritten for the pane model; `docs/deployment/lab-host.md` added (owner steps for the widget,
   the vault key and Docker Hub, health, logs, rollback by digest); `vps.md`, `infrastructure/terraform/lab-*` and
   `reverse-proxy` marked retired (deletion in a follow-up); threat model, runbook, README and indexes updated.
+- **Review round 1 (Copilot, PR #4):** the fail-closed `503 turnstile_not_configured` answer goes out before the body is read
+  and closes the connection behind it; a secret without `AMO_TURNSTILE_SITE_KEY` refuses to start unconditionally (the bypass
+  flag covers only the no-secret case); `verifyTurnstile` is bounded to 5 s (abort signal plus a race, so a fetch that
+  ignores the signal still ends) and a timeout is the failed verdict `siteverify-timeout`; the concurrency bound now counts a
+  request from verification onwards, so a stalled verification endpoint cannot exhaust connections; `apps/lab-api/src/config.ts`
+  builds the options from the environment and refuses to start on anything but positive integers for
+  `AMO_RATE_LIMIT_POSTS`, `AMO_RATE_LIMIT_WINDOW_MINUTES`, `AMO_MAX_CONCURRENT` and the TTL (tests in `config.test.ts`);
+  `docs/api/openapi.yaml` names the four AddOn headers as individual header components attached to every response
+  (shared YAML anchor), and the contract test checks that.
 - Versions: repository, `@amo/lab-api` and `@amo/lab-web` at 0.3.0.
 
 ## Unreleased — 2026-10-04 (ADR-0028 flip)

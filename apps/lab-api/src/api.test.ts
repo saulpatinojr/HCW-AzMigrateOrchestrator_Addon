@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { noopLogger } from "@hybridcloudworks/migration-core/observability";
-import { createDemoApi, ADDON_VERSION } from "./app.js";
+import { createDemoApi, verifyTurnstile, ADDON_VERSION } from "./app.js";
 
 // Repository root from this file (apps/lab-api/dist/api.test.js); the rules now live inside the published core package.
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -205,7 +205,7 @@ test("rate limit: the bucket empties after the configured posts and 429 carries 
   } finally { s.server.close(); }
 });
 
-test("overload: with maxConcurrent 0 the first POST answers 503 overloaded with Retry-After 5", async () => {
+test("overload: with the programmatic maxConcurrent 0 (the env floor is 1) the first POST answers 503 overloaded with Retry-After 5", async () => {
   const s = await listen({ ...dev, maxConcurrent: 0 });
   try {
     const r = await post(s.url);
@@ -215,18 +215,41 @@ test("overload: with maxConcurrent 0 the first POST answers 503 overloaded with 
   } finally { s.server.close(); }
 });
 
-test("Turnstile fails closed: no secret → 503 turnstile_not_configured unless explicitly allowed; a secret without a site key refuses to start", async () => {
+test("Turnstile fails closed: no secret → 503 turnstile_not_configured unless explicitly allowed; a secret without a site key always refuses to start", async () => {
   const closed = await listen({ logger: noopLogger });
   try {
     const r = await post(closed.url);
     assert.equal(r.status, 503);
+    assert.equal(r.headers.get("connection"), "close");
     assert.equal(((await r.json()) as { error: { code: string } }).error.code, "turnstile_not_configured");
+    // An oversized upload against the misconfigured route is answered or cut at once, never buffered: the body is not read.
+    const t0 = Date.now();
+    const big = await fetch(`${closed.url}/api/assessments`, { method: "POST", headers: { "content-type": "text/csv" }, body: "x".repeat(6 * 1024 * 1024) }).catch(() => null);
+    assert.ok(big === null || big.status === 503, `oversized body: ${big?.status ?? "connection closed"}`);
+    assert.ok(Date.now() - t0 < 5000, "no hang");
     assert.equal((await fetch(`${closed.url}/api/health`)).status, 200, "health still answers");
   } finally { closed.server.close(); }
   assert.equal((await post(base)).status, 201, "allowNoTurnstile lets local development through");
   assert.throws(() => createDemoApi({ logger: noopLogger, turnstileSecret: "s" }), /AMO_TURNSTILE_SITE_KEY/);
-  const { server: tolerated } = createDemoApi({ logger: noopLogger, turnstileSecret: "s", allowNoTurnstile: true });
-  tolerated.close();
+  assert.throws(() => createDemoApi({ logger: noopLogger, turnstileSecret: "s", allowNoTurnstile: true }), /AMO_TURNSTILE_SITE_KEY/, "the bypass never covers a secret without its site key");
+});
+
+test("siteverify is bounded: a stalled verification endpoint yields 403 siteverify-timeout and counts against the concurrency bound", async () => {
+  const stall = ((_url: string, init?: RequestInit) => new Promise<Response>((_, reject) => init?.signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true }))) as unknown as typeof fetch;
+  const ignoresSignal = (() => new Promise<Response>(() => {})) as unknown as typeof fetch;
+  const s = await listen({ logger: noopLogger, turnstileSecret: "secret", turnstileSiteKey: "1x00000000000000000000AA", fetchImpl: stall, siteverifyTimeoutMs: 300, maxConcurrent: 1 });
+  try {
+    const t0 = Date.now();
+    const [first, second] = await Promise.all([post(s.url, { "x-turnstile-token": "t" }), new Promise<Response>((r) => setTimeout(() => r(post(s.url, { "x-turnstile-token": "t" })), 50))]);
+    assert.equal(first.status, 403);
+    assert.deepEqual(((await first.json()) as { error: { details: { codes: string[] } } }).error.details.codes, ["siteverify-timeout"]);
+    assert.equal(second.status, 503, "the request stalled in verification holds the one slot; the next is refused, not queued");
+    assert.equal(second.headers.get("retry-after"), "5");
+    assert.ok(Date.now() - t0 < 3000, "bounded by the siteverify timeout, not by the request");
+    assert.equal((await post(s.url, { "x-turnstile-token": "t" })).status, 403, "the slot is released after the timeout");
+  } finally { s.server.close(); }
+  const direct = await verifyTurnstile("secret", "t", undefined, ignoresSignal, "http://siteverify.test/verify", 100);
+  assert.deepEqual(direct, { ok: false, codes: ["siteverify-timeout"] }, "a fetch that ignores the signal still times out");
 });
 
 test("client address: socket peer by default; first x-forwarded-for value only with trustProxy", async () => {

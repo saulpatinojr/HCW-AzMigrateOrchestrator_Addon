@@ -104,8 +104,10 @@ row has `navigate` and must be one of the site's navigation targets (`/contact` 
 
 The pane owns the widget entirely: it injects the widget script only when health says `turnstile.required`, renders it with
 the published `siteKey`, and sends the token as `x-turnstile-token` on the upload. The server verifies it with the secret from
-the host vault (`vault_addon_migration_turnstile_secret`); without a secret the upload route answers
-`503 turnstile_not_configured` (fail closed). The widget is a separate one bound to `migration.lab.hybridcloudworks.com`, not
+the host vault (`vault_addon_migration_turnstile_secret`), with a 5-second bound on the verification call (a timeout is a
+failed verdict, `siteverify-timeout`). Without a secret the upload route answers `503 turnstile_not_configured` at once and
+closes the connection without reading the body (fail closed). The rate limit and the concurrency bound both apply before
+verification, so a stalled verification endpoint holds at most `AMO_MAX_CONCURRENT` requests. The widget is a separate one bound to `migration.lab.hybridcloudworks.com`, not
 the site's. Visitor copy says "human verification"; no vendor name appears in the pane.
 
 ## 6. Environment the host renders into the container
@@ -123,7 +125,7 @@ the site's. Visitor copy says "human verification"; no vendor name appears in th
 | `AMO_ASSESSMENT_TTL_MINUTES` | `120` | In-memory TTL |
 | `AMO_ALLOWED_ORIGINS` | empty | The pane is same-origin with its API |
 | `AMO_PUBLIC_BASE_URL` | `https://migration.lab.hybridcloudworks.com` | Only used by the (disabled) guided-lab hand-off |
-| `AMO_ALLOW_NO_TURNSTILE` | never set on the host | Local development and e2e only |
+| `AMO_ALLOW_NO_TURNSTILE` | never set on the host | Local development and e2e only; covers only the no-secret case (a secret without its site key always refuses to start) |
 
 ## 7. What the site needs from a release
 
