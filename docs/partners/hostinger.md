@@ -1,10 +1,10 @@
 # Hostinger
 
-**What it does here.** Hosts the Hybrid Cloud Works Migration Explorer lab API on a KVM VPS.
+**What it does here.** Hosts the Hybrid Cloud Works Migration Explorer AddOn on the website's KVM VPS, the existing lab host.
 
-**Where.** `infrastructure/terraform/lab-hostinger/` provisions the VPS, SSH key and firewall with the Hostinger Terraform
-provider from the Hostinger API; `cloud-init.yaml.tftpl` hardens the host and stages `docker-compose.lab.yml`. The VPS opens
-**no inbound ports** except operator SSH; traffic arrives through a Cloudflare Tunnel.
+**Where.** The website repository's `lab-host/ansible/roles/addons` role runs this AddOn's image as a hardened container on
+`127.0.0.1:18081` behind the host's Caddy (`docs/deployment/lab-host.md`). This repository ships the image and the env
+contract only; the standalone VPS Terraform (`infrastructure/terraform/lab-hostinger`) was retired and deleted on 2026-10-10.
 
 **Why Hostinger for this.** Predictable monthly cost for an always-on educational lab, Docker-ready OS templates, and an
 API + Terraform provider that make the entire lab reproducible from this repository — the same infrastructure-as-code story

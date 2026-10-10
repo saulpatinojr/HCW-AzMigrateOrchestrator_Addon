@@ -9,6 +9,7 @@ Program decision (HCW AddOn Integration Standard; upstream ADR-0030 pending): hy
 UI package. It frames `https://migration.lab.hybridcloudworks.com/` at `/tools/migration` in a sandboxed iframe, reads
 `/api/health` through its status proxy, and hosts this AddOn's image on its lab host through its `addons` Ansible role.
 
+- **Retired infrastructure deleted** (follow-up to the pane model): `infrastructure/terraform/lab-hostinger`, `infrastructure/terraform/lab-cloudflare`, `infrastructure/reverse-proxy` and `docs/deployment/vps.md` are gone; `iac-validate` covers the Coder template only; the partner notes, the infrastructure index, `VALIDATION.md` and `repository.manifest.json` no longer point at them. ADR-0019 remains as the record of the retired Tunnel edge.
 - **Pane app `apps/lab-web`** (Vite + React, replaces the vanilla page and `apps/ui-harness`): mounts `MigrationExplorer`
   against the same origin, owns the human-verification widget (script injected only when health says it is required, token
   kept in memory), speaks the pane protocol (`{ type: 'hcw-addon', id: 'migration', state }` to the configured site origins,

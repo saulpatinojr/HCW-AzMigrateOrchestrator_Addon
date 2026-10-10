@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # infrastructure/terraform/lab-hostinger and lab-cloudflare are retired (2026-10-10): the lab host is the website
-        # repository's; they are no longer validated and are deleted in a follow-up pull request.
+        # The standalone lab Terraform (lab-hostinger, lab-cloudflare) was retired on 2026-10-10 and deleted: the lab host is the
+        # website repository's (its `addons` role). Only the Coder template remains to validate.
         dir: [infrastructure/coder/template]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

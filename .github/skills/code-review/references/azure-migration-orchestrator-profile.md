@@ -26,7 +26,7 @@ npm ci && npm test            # build + 50+ unit/integration/golden/security tes
 npm run rules:validate        # rule corpus + snapshot checksum
 ```
 
-Terraform under `infrastructure/terraform` is validated by `iac-validate.yml` (`fmt -check`, `init -backend=false`, `validate`). If terraform is unavailable locally, report it as skipped — CI covers it.
+Terraform under `infrastructure/coder/template` is validated by `iac-validate.yml` (`fmt -check`, `init -backend=false`, `validate`). If terraform is unavailable locally, report it as skipped — CI covers it.
 
 ## Cross-cutting rules
 
