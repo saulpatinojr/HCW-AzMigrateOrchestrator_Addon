@@ -4,13 +4,21 @@ import type { DemoApiOptions } from "./app.js";
 /** A space- or comma-separated list from the environment, as the host's Caddy configuration writes them. */
 const list = (v: string | undefined, sep: RegExp): string[] => (v ?? "").split(sep).map((s) => s.trim()).filter(Boolean);
 
-/** A strictly positive integer, or the default when unset; anything else refuses the start with the variable named. */
+/**
+ * A strictly positive safe integer, or the default when unset; anything else refuses the start with the variable named.
+ * "Safe" matters: a long enough digit string passes a digit check and becomes Infinity, which would make a bucket,
+ * a window or a TTL unbounded. Number.isSafeInteger rejects that, and the cap keeps the arithmetic (minutes * 60000) exact.
+ */
 export function positiveInt(env: NodeJS.ProcessEnv, name: string, dflt: number): number {
   const v = env[name];
   if (v === undefined || v.trim() === "") return dflt;
-  if (!/^\d+$/.test(v.trim()) || Number(v) < 1) throw new Error(`${name} must be a positive integer (got ${JSON.stringify(v)}); the default is ${dflt}`);
-  return Number(v);
+  const n = /^\d+$/.test(v.trim()) ? Number(v.trim()) : NaN;
+  if (!Number.isSafeInteger(n) || n < 1 || n > MAX_SETTING) throw new Error(`${name} must be a positive integer between 1 and ${MAX_SETTING} (got ${JSON.stringify(v.length > 40 ? v.slice(0, 40) + "…" : v)}); the default is ${dflt}`);
+  return n;
 }
+
+/** Upper bound for every numeric setting: large enough for any real deployment, small enough that every derived value stays a safe integer. */
+export const MAX_SETTING = 1_000_000_000;
 
 /** Builds the API options from the environment. Throws, with a clear message, on any value that would weaken a bound. */
 export function optionsFromEnv(env: NodeJS.ProcessEnv, repoRoot: string): DemoApiOptions {

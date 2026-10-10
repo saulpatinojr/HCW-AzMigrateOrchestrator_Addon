@@ -36,6 +36,8 @@ UI package. It frames `https://migration.lab.hybridcloudworks.com/` at `/tools/m
 - **Docs:** website integration rewritten for the pane model; `docs/deployment/lab-host.md` added (owner steps for the widget,
   the vault key and Docker Hub, health, logs, rollback by digest); `vps.md`, `infrastructure/terraform/lab-*` and
   `reverse-proxy` marked retired (deletion in a follow-up); threat model, runbook, README and indexes updated.
+- **Review round 2 (Copilot, PR #4):** every numeric setting must be a safe integer between 1 and 1,000,000,000; a digit
+  string long enough to become `Infinity` (which would have made a bucket, window or TTL unbounded) now refuses the start.
 - **Cross-AddOn standardization (program Phase 5D):** every response also carries `Permissions-Policy: camera=(),
   microphone=(), geolocation=()` and `Cross-Origin-Opener-Policy: same-origin`, as the Python AddOns do; the generic error
   codes are `method_not_allowed` (405) and `internal_error` (500), shared by all three AddOns.
