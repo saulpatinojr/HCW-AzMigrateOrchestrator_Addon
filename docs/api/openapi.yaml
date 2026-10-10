@@ -1,31 +1,75 @@
 openapi: 3.1.0
 info:
-  title: Hybrid Cloud Works Migration Explorer API (demo edition)
-  version: 0.1.0
+  title: Hybrid Cloud Works Migration Explorer API (web-front edition)
+  version: 0.3.0
   description: |
-    CSV-based assessment API. Never connects to Azure, never accepts credentials, never executes operations.
-    All assessment routes require the `x-owner-token` header issued at creation. Assessments expire (default 120 min).
+    CSV-based assessment API behind the migration AddOn pane (`https://migration.lab.hybridcloudworks.com`). Never connects
+    to Azure, never accepts credentials, never executes operations. Assessment routes require the `x-owner-token` header
+    issued at creation; assessments expire (default 120 min) and live in memory only.
+
+    Every response carries `X-Addon-Id: migration`, `X-Addon-Version`, `X-Content-Type-Options: nosniff`,
+    `Referrer-Policy: no-referrer`, a Content Security Policy whose `frame-ancestors` comes from `AMO_FRAME_ANCESTORS`
+    and, for API responses, `Cache-Control: no-store`. Errors use one envelope: `{ error: { code, message, details? } }`.
 servers:
   - url: /
 paths:
   /api/health:
     get:
-      summary: Liveness and edition facts
+      summary: Liveness and the AddOn health envelope (HCW AddOn Integration Standard, section 11)
+      description: Answers without any upstream dependency. The website's status proxy reads `ok`, `version`, `edition`, `capabilities` and `asOf`; the pane reads `siteOrigins` and `turnstile`.
       responses:
-        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, edition: { const: demo }, azureConnectivity: { const: disabled-by-design } } } } } }
+        "200":
+          description: OK
+          headers: &addon_headers
+            X-Addon-Id: { $ref: "#/components/headers/XAddonId" }
+            X-Addon-Version: { $ref: "#/components/headers/XAddonVersion" }
+            X-Content-Type-Options: { $ref: "#/components/headers/XContentTypeOptions" }
+            Referrer-Policy: { $ref: "#/components/headers/ReferrerPolicy" }
+            Permissions-Policy: { $ref: "#/components/headers/PermissionsPolicy" }
+            Cross-Origin-Opener-Policy: { $ref: "#/components/headers/CrossOriginOpenerPolicy" }
+          content: { application/json: { schema: { $ref: "#/components/schemas/AddOnHealth" } } }
   /api/agents:
     get:
-      summary: Agents that run in the demo edition
+      summary: Agents that run in the web-front edition
       responses:
-        "200": { description: List of {id, name, purpose} }
+        "200": { description: "List of {id, name, purpose}", headers: *addon_headers }
+  /api/rules/coverage:
+    get:
+      summary: Which resource types the shipped rule corpus covers (public, no inventory data)
+      responses:
+        "200":
+          description: OK
+          headers: *addon_headers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapshot: { type: string }
+                  checksum: { type: string }
+                  count: { type: integer }
+                  types: { type: array, items: { type: object, properties: { resourceType: { type: string }, ruleId: { type: string }, version: { type: string }, support: { type: object }, humanReview: { type: boolean }, reviewDate: { type: string }, sources: { type: array, items: { type: string, format: uri } } } } }
+  /api/stats:
+    get:
+      summary: Opt-in aggregate counts (AMO_TELEMETRY=1); never names, IDs, tags, subscriptions or file contents
+      responses:
+        "200": { description: "Aggregates since process start", headers: *addon_headers }
+        "404": { description: "not_enabled \u2014 telemetry is off (the default)", headers: *addon_headers }
   /api/sample.csv:
     get:
       summary: Synthetic sample inventory
       responses:
-        "200": { description: text/csv attachment }
+        "200": { description: "text/csv attachment", headers: *addon_headers }
   /api/assessments:
     post:
       summary: Create an assessment from a resources.csv export
+      description: |
+        Anonymous mutating route. Requires a human-verification token (`x-turnstile-token`) whenever `TURNSTILE_SECRET` is
+        configured; without a secret the route answers 503 `turnstile_not_configured` unless the deployment explicitly allows
+        unverified uploads (local development only). Rate limited per client address (`AMO_RATE_LIMIT_POSTS` per
+        `AMO_RATE_LIMIT_WINDOW_MINUTES`) and bounded to `AMO_MAX_CONCURRENT` assessments at once.
+      parameters:
+        - { name: x-turnstile-token, in: header, required: false, schema: { type: string }, description: Human-verification token from the widget rendered with the site key published by /api/health }
       requestBody:
         required: true
         content:
@@ -40,10 +84,13 @@ paths:
           text/csv:
             schema: { type: string }
       responses:
-        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/CreateAssessmentResponse" } } } }
-        "400": { description: Invalid body, prohibited credential-shaped intent field, or bad file name }
-        "413": { description: Body exceeds 5 MB }
-        "422": { description: CSV could not be ingested (missing NAME/TYPE columns, empty, binary) }
+        "201": { description: "Created", content: { application/json: { schema: { $ref: "#/components/schemas/CreateAssessmentResponse" } } }, headers: *addon_headers }
+        "400": { description: "Invalid body, prohibited credential-shaped intent field, or bad file name", content: { application/json: { schema: { $ref: "#/components/schemas/ApiError" } } }, headers: *addon_headers }
+        "403": { description: "turnstile_failed \u2014 human verification missing or rejected", content: { application/json: { schema: { $ref: "#/components/schemas/ApiError" } } }, headers: *addon_headers }
+        "413": { description: "too_large \u2014 body exceeds 5 MB", headers: *addon_headers }
+        "422": { description: "ingestion_failed \u2014 CSV could not be ingested (missing NAME/TYPE columns, empty, binary)", headers: *addon_headers }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Unavailable" }
   /api/assessments/{id}:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -51,21 +98,23 @@ paths:
     get:
       summary: Full assessment (decisions, waves, progress, safety findings) and bundle file list
       responses:
-        "200": { description: OK }
-        "404": { description: Not found, expired, or owner token missing/invalid (indistinguishable by design) }
+        "200": { description: "OK", headers: *addon_headers }
+        "404": { description: "Not found, expired, or owner token missing/invalid (indistinguishable by design)", headers: *addon_headers }
     delete:
       summary: Immediately delete the assessment and all derived data
       responses:
-        "200": { description: Deleted }
-        "404": { description: Not found / wrong token }
+        "200": { description: "Deleted", headers: *addon_headers }
+        "404": { description: "Not found / wrong token", headers: *addon_headers }
   /api/assessments/{id}/bundle.zip:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
       - { $ref: "#/components/parameters/OwnerToken" }
+      - { name: x-bundle-token, in: header, required: false, schema: { type: string }, description: One-time token issued to a guided-lab workspace (ADR-0023); used only when no owner token is sent }
     get:
       summary: Download the assessment-output bundle (STORE zip)
       responses:
-        "200": { description: application/zip }
+        "200": { description: "application/zip", headers: *addon_headers }
+        "404": { description: "Not found / wrong token / bundle token already redeemed", headers: *addon_headers }
   /api/assessments/{id}/files/{path}:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -74,17 +123,95 @@ paths:
     get:
       summary: One generated file
       responses:
-        "200": { description: File content with a type-appropriate content-type }
+        "200": { description: "File content with a type-appropriate content-type", headers: *addon_headers }
+        "404": { description: "No such file, or not found / wrong token", headers: *addon_headers }
+  /api/assessments/{id}/workspace:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { $ref: "#/components/parameters/OwnerToken" }
+    post:
+      summary: Request a guided-lab workspace for this assessment (only when a workspace provider is configured)
+      description: Rate limited together with POST /api/assessments. Issues a one-time bundle token to the workspace; the owner token is never shared with it.
+      responses:
+        "202": { description: "Accepted", content: { application/json: { schema: { type: object, properties: { workspaceId: { type: string }, status: { type: string }, launchUrl: { type: [string, "null"] }, expiresAt: { type: [string, "null"] } } } } }, headers: *addon_headers }
+        "404": { description: "not_found (wrong token) or not_configured (no workspace provider on this deployment)", headers: *addon_headers }
+        "405": { description: "method_not_allowed — POST required", headers: *addon_headers }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /api/execute:
     post:
       summary: Deliberately absent execution surface
-      description: Always 403. Exists so the authorization gate's refusal is observable (demo max level = planning).
+      description: Always 403. Exists so the authorization gate's refusal is observable (web-front maximum level = planning).
       responses:
-        "403": { description: execution_disabled }
+        "403": { description: "execution_disabled", headers: *addon_headers }
 components:
   parameters:
     OwnerToken: { name: x-owner-token, in: header, required: true, schema: { type: string } }
+  headers:
+    # Present on every response (JSON, static files and errors alike); referenced by name under each response's `headers`.
+    XAddonId: { description: "x-addon-id: the catalogue id", schema: { type: string, const: migration } }
+    XAddonVersion: { description: "x-addon-version: semver of the running image", schema: { type: string } }
+    XContentTypeOptions: { description: "x-content-type-options", schema: { type: string, const: nosniff } }
+    ReferrerPolicy: { description: "referrer-policy", schema: { type: string, const: no-referrer } }
+    PermissionsPolicy: { description: "permissions-policy", schema: { type: string, const: "camera=(), microphone=(), geolocation=()" } }
+    CrossOriginOpenerPolicy: { description: "cross-origin-opener-policy", schema: { type: string, const: same-origin } }
+  responses:
+    RateLimited:
+      description: rate_limited — the client's token bucket is empty; `Retry-After` (seconds) says when a token is back
+      headers:
+        Retry-After: { schema: { type: integer }, description: Seconds until the next request may succeed }
+        X-Addon-Id: { $ref: "#/components/headers/XAddonId" }
+        X-Addon-Version: { $ref: "#/components/headers/XAddonVersion" }
+        X-Content-Type-Options: { $ref: "#/components/headers/XContentTypeOptions" }
+        Referrer-Policy: { $ref: "#/components/headers/ReferrerPolicy" }
+        Permissions-Policy: { $ref: "#/components/headers/PermissionsPolicy" }
+        Cross-Origin-Opener-Policy: { $ref: "#/components/headers/CrossOriginOpenerPolicy" }
+      content: { application/json: { schema: { $ref: "#/components/schemas/ApiError" } } }
+    Unavailable:
+      description: |
+        `overloaded` — more than `AMO_MAX_CONCURRENT` assessments are running (`Retry-After: 5`), or
+        `turnstile_not_configured` — human verification is not configured on this deployment and unverified uploads are not allowed.
+      headers:
+        Retry-After: { schema: { type: integer }, description: Present for overloaded }
+        X-Addon-Id: { $ref: "#/components/headers/XAddonId" }
+        X-Addon-Version: { $ref: "#/components/headers/XAddonVersion" }
+        X-Content-Type-Options: { $ref: "#/components/headers/XContentTypeOptions" }
+        Referrer-Policy: { $ref: "#/components/headers/ReferrerPolicy" }
+        Permissions-Policy: { $ref: "#/components/headers/PermissionsPolicy" }
+        Cross-Origin-Opener-Policy: { $ref: "#/components/headers/CrossOriginOpenerPolicy" }
+      content: { application/json: { schema: { $ref: "#/components/schemas/ApiError" } } }
   schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, description: Stable snake_case machine code (rate_limited, overloaded, turnstile_not_configured, turnstile_failed, too_large, invalid_json, ingestion_failed, not_found, not_configured, not_enabled, execution_disabled, internal) }
+            message: { type: string, description: Visitor-safe; no hostnames, paths or stacks }
+            details: { description: Optional machine detail (e.g. retryAfterSeconds, verification codes, ingestion warnings) }
+    AddOnHealth:
+      type: object
+      description: Flat envelope shared by every HCW AddOn plus this AddOn's extras (rulesLoaded, azureConnectivity, workspace), which the website's proxy ignores.
+      required: [ok, id, version, edition, capabilities, asOf, siteOrigins, turnstile]
+      properties:
+        ok: { type: boolean }
+        id: { type: string, const: migration }
+        version: { type: string, description: Semver of the running image (apps/lab-api/package.json) }
+        edition: { type: string, const: demo, description: An upstream constant; the website treats it as opaque }
+        capabilities: { type: array, items: { type: string, enum: [assessments, sample-csv, bundle-download, workspace] } }
+        asOf: { type: string, format: date-time }
+        siteOrigins: { type: array, items: { type: string, format: uri }, description: Site origins the pane posts hcw-addon messages to (AMO_SITE_ORIGINS) }
+        turnstile:
+          type: object
+          required: [required, siteKey]
+          properties:
+            required: { type: boolean, description: True whenever TURNSTILE_SECRET is configured }
+            siteKey: { type: [string, "null"], description: Public widget site key (AMO_TURNSTILE_SITE_KEY); non-empty whenever required is true }
+        rulesLoaded: { type: boolean }
+        azureConnectivity: { type: string, const: disabled-by-design }
+        workspace: { type: string, description: Workspace provider name (disabled unless configured) }
     MigrationIntentInput:
       type: object
       description: Questionnaire answers. Keys containing password/secret/token/key/connectionstring/credential/certificate are rejected.

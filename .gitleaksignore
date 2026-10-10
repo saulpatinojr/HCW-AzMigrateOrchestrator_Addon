@@ -1,0 +1,4 @@
+# Fingerprints the secret scanner may skip, each with the reason. One per line: <commit>:<path>:<rule>:<line>.
+# Reviewed 2026-10-10: .env.example line 23 was the empty assignment `AMO_TURNSTILE_SITE_KEY=`; the generic-api-key
+# rule read across the newline into the next line's value. The file carries no value; a comment now separates the lines.
+ebaccca77ac04320aea67873170a30673b15fcb8:.env.example:generic-api-key:23

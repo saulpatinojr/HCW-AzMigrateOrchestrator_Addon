@@ -1,3 +1,5 @@
+> **Retired 2026-10-10: superseded by the website repository's `addons` Ansible role; not applied to the existing host. Kept only until the follow-up pull request deletes this directory.**
+
 # Lab VPS — Hostinger
 
 Provisions one KVM VPS from Hostinger's Docker OS template, an SSH key, and a firewall that admits **only SSH from your

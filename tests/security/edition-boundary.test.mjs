@@ -37,8 +37,11 @@ test("lab-api never references authenticated discovery, execution or internal up
   }
 });
 
-test("lab-web is static: no build step, no runtime dependencies, no Azure SDK", () => {
+test("lab-web is the pane app: exactly the UI package, react and react-dom; no Azure SDK in src or dist; the harness is gone", () => {
   const pkg = JSON.parse(readFileSync("apps/lab-web/package.json", "utf8"));
-  assert.equal(pkg.dependencies, undefined);
-  for (const f of readdirSync("apps/lab-web/public")) assert.ok(!readFileSync(join("apps/lab-web/public", f), "utf8").includes("@azure/"));
+  assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), [UI, "react", "react-dom"].sort());
+  for (const f of srcFiles("apps/lab-web/src")) assert.ok(!readFileSync(f, "utf8").includes("@azure/"), `${f} references the Azure SDK`);
+  if (existsSync("apps/lab-web/dist")) for (const f of walk("apps/lab-web/dist")) assert.ok(!readFileSync(f, "utf8").includes("@azure/"), `${f} references the Azure SDK`);
+  assert.ok(!existsSync("apps/ui-harness"), "apps/ui-harness was replaced by the pane app apps/lab-web");
+  assert.ok(!existsSync("apps/lab-web/public/index.html"), "the vanilla page was replaced by the pane app");
 });

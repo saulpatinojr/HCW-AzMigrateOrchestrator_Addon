@@ -1,3 +1,4 @@
+# Retired 2026-10-10: superseded by the website repository's `addons` Ansible role; not applied to the existing host. Kept only until the follow-up pull request deletes this directory.
 # Lab VPS on Hostinger, provisioned with the Hostinger Terraform provider and configured with cloud-init.
 # [VERIFY] Provider source/version and resource schema against https://registry.terraform.io/providers/hostinger/hostinger
 # before first apply; `iac-validate.yml` runs `terraform init -backend=false`, which fails loudly if either is wrong.

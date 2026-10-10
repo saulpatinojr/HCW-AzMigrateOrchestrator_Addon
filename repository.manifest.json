@@ -1,19 +1,19 @@
 {
   "name": "hcw-azmigrateorchestrator-addon",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "archive": "hcw-azmigrateorchestrator-addon.zip",
   "archiveLayout": "repository files at archive root (no nested parent directory)",
   "requiredFiles": [
     "README.md", "CLAUDE.md", "AGENTS.md", "SECURITY.md", "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "LICENSE", "NOTICE", "CHANGELOG.md", "VALIDATION.md",
     "package.json", "package-lock.json", "tsconfig.base.json", "tsconfig.build.json", "Makefile", ".env.example", ".gitignore", "playwright.config.ts",
-    "docker-compose.yml", "docker-compose.lab.yml",
-    "docs/website-integration/integration-guide.md", "docs/website-integration/routes.md", "docs/api/openapi.yaml", "docs/deployment/vps.md", "docs/deployment/coder.md", "docs/security/threat-model.md", "docs/adr/ADR-0028-appliance-upstream-web-front-downstream.md",
+    "docker-compose.yml",
+    "docs/website-integration/integration-guide.md", "docs/website-integration/routes.md", "docs/api/openapi.yaml", "docs/deployment/lab-host.md", "docs/deployment/coder.md", "docs/security/threat-model.md", "docs/adr/ADR-0028-appliance-upstream-web-front-downstream.md",
     "samples/resources-csv/sample-resources.csv",
     "scripts/package-repository.sh", "scripts/package-repository.ps1", "scripts/bootstrap-app.sh",
     ".github/copilot-instructions.md", ".github/workflows/ci.yml", ".github/workflows/core-update.yml", ".github/workflows/publish-images.yml", ".github/workflows/iac-validate.yml",
     "infrastructure/docker/Dockerfile.lab", "infrastructure/terraform/lab-hostinger/main.tf", "infrastructure/terraform/lab-cloudflare/main.tf", "infrastructure/coder/template/main.tf",
-    "apps/lab-api/src/app.ts", "apps/lab-api/src/server.ts", "apps/lab-web/public/index.html", "apps/ui-harness/src/main.tsx",
-    "tests/e2e/lab.spec.ts", "tests/security/edition-boundary.test.mjs", "tests/contract/openapi-routes.test.mjs"
+    "apps/lab-api/src/app.ts", "apps/lab-api/src/server.ts", "apps/lab-web/index.html", "apps/lab-web/src/main.tsx", "apps/lab-web/src/PaneApp.tsx", "apps/lab-web/src/pane.ts",
+    "tests/e2e/lab.spec.ts", "tests/e2e/host-page.html", "tests/e2e/siteverify-mock.mjs", "tests/security/edition-boundary.test.mjs", "tests/contract/openapi-routes.test.mjs"
   ],
   "packageExcludes": [".git/", "node_modules/", "dist/", "dist-sea/", "*.tsbuildinfo", ".local/", ".env", "coverage/", "data/", "*.tfstate", ".terraform/", "*.log", "__pycache__/", "*.pyc", ".DS_Store", "hcw-azmigrateorchestrator-addon.zip"]
 }

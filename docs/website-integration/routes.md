@@ -1,15 +1,16 @@
-# Hybrid Cloud Works website integration
+# Site routes and names for the migration AddOn
 
-Proposed section parallel to the existing browser labs:
+| Route or name | Value | Notes |
+|---|---|---|
+| Site route | `/tools/migration` | Rendered by `frontend/src/pages/tools/AddOnPanePage.jsx` with `addonId="migration"`; in the Tools menu as `Migration Hub` |
+| AddOn origin | `https://migration.lab.hybridcloudworks.com` | `'https://' + id + '.lab.hybridcloudworks.com'`; already covered by the `*.lab` DNS record and wildcard certificate |
+| Pane URL | `https://migration.lab.hybridcloudworks.com/` | What the frame loads (`panePath: '/'`) |
+| Health URL | `https://migration.lab.hybridcloudworks.com/api/health` | What the status proxy reads |
+| Status route (site) | `GET /api/public/addons/migration/status` | Anonymous; projection `{ configured, reachable, version, edition, capabilities, asOf }` |
+| App setting (site Function App) | `ADDON_MIGRATION_URL` | Plain setting (public value); unsetting it closes the pane |
+| Container on the lab host | `hcw-addon-migration` on `127.0.0.1:18081` | Website `addons` role, `group_vars/all.yml` `addons[]` |
+| Vault key (lab host) | `vault_addon_migration_turnstile_secret` | Set with `hcw-vault-set`; the role refuses to start the container without it |
 
-| Route | Content |
-|---|---|
-| `/education/migration-labs` | Landing: what the labs are, link to the Azure Resource Assessment lab, enterprise CTA |
-| `/education/migration-labs/azure-resource-assessment` | Explainer, disclaimer, sample CSV download, "Start" |
-| `/education/migration-labs/azure-resource-assessment/start` | Embeds or links the explorer (`https://migrate-demo.hybridcloudworks.com`) |
-| `/education/migration-labs/azure-resource-assessment/lab` | Optional Coder-backed guided inspection lab when configured |
-
-Integration options: (a) reverse-proxy `migrate-demo.hybridcloudworks.com` under the site's Cloudflare zone with the
-same security headers; (b) embed via `<iframe>` with `frame-ancestors` relaxed to the site origin only (the API currently
-sends `frame-ancestors 'none'`; change in `securityHeaders()` deliberately). The site's own frontend (React/Vite) can later
-consume `/api/assessments` directly; the demo UI is intentionally framework-free so it can be replaced by site components.
+Retired (never shipped): the `/education/migration-labs/*` routes, the `migrate-demo` and `labs-api` hostnames, the Cloudflare
+Tunnel edge, and the plan to install `@hybridcloudworks/migration-ui` into the site as an npm island. npm publication of the
+UI package remains optional upstream and is no longer on the site's path.

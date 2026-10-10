@@ -1,11 +1,15 @@
 # syntax=docker/dockerfile:1.7
-# NOTE: pin images by digest before production use (VALIDATION.md).
-# Hybrid Cloud Works Migration Explorer — lab API + static UI. No Azure clients, no credentials.
+# Hybrid Cloud Works Migration Explorer — lab API + the pane app the website frames. No Azure clients, no credentials.
 # Build context is the PARENT directory containing both checkouts (ADR-0028 interim contract):
 #   <ctx>/HCW-AzMigrateOrchestrator_App     (upstream product at APP_REF; provides the published packages)
 #   <ctx>/HCW-AzMigrateOrchestrator_Addon   (this repository)
 # docker build -f HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab .
-FROM node:26-bookworm-slim AS build
+#
+# Base image pinned by digest (the multi-arch index of node:26-bookworm-slim, resolved from Docker Hub on 2026-10-10).
+# [VERIFY] before the first production publish: `docker buildx imagetools inspect node:26-bookworm-slim` must print this digest;
+# a later tag move is adopted deliberately by changing both lines (Dependabot's docker ecosystem proposes it).
+ARG NODE_IMAGE=node:26-bookworm-slim@sha256:86f07bc9c5dce4578cf37e5a418b7bfc7f817cda25cde66e2b66e95ed86c4567
+FROM ${NODE_IMAGE} AS build
 WORKDIR /srv
 COPY HCW-AzMigrateOrchestrator_App/package.json HCW-AzMigrateOrchestrator_App/package-lock.json HCW-AzMigrateOrchestrator_App/tsconfig.base.json HCW-AzMigrateOrchestrator_App/tsconfig.build.json ./HCW-AzMigrateOrchestrator_App/
 COPY HCW-AzMigrateOrchestrator_App/packages ./HCW-AzMigrateOrchestrator_App/packages
@@ -15,22 +19,30 @@ COPY HCW-AzMigrateOrchestrator_App/scripts ./HCW-AzMigrateOrchestrator_App/scrip
 RUN cd HCW-AzMigrateOrchestrator_App && npm ci --no-audit --no-fund && npx tsc -b tsconfig.build.json --force && node scripts/assemble-packages.mjs
 COPY HCW-AzMigrateOrchestrator_Addon/package.json HCW-AzMigrateOrchestrator_Addon/.npmrc HCW-AzMigrateOrchestrator_Addon/package-lock.json HCW-AzMigrateOrchestrator_Addon/tsconfig.base.json HCW-AzMigrateOrchestrator_Addon/tsconfig.build.json ./HCW-AzMigrateOrchestrator_Addon/
 COPY HCW-AzMigrateOrchestrator_Addon/apps ./HCW-AzMigrateOrchestrator_Addon/apps
-RUN cd HCW-AzMigrateOrchestrator_Addon && npm ci --no-audit --no-fund && npx tsc -b tsconfig.build.json --force && npm prune --omit=dev
+# The API (tsc) and the pane (vite) both build before devDependencies are pruned; the pane's dist/ is what the API serves.
+RUN cd HCW-AzMigrateOrchestrator_Addon && npm ci --no-audit --no-fund && npm run build && npm prune --omit=dev
 
-FROM node:26-bookworm-slim
-ENV NODE_ENV=production PORT=8080 AMO_STATIC_DIR=/srv/HCW-AzMigrateOrchestrator_Addon/apps/lab-web/public
+FROM ${NODE_IMAGE}
+ARG ADDON_VERSION=0.3.0
+LABEL org.opencontainers.image.title="hcw-addon-migration" \
+      org.opencontainers.image.description="Hybrid Cloud Works migration assessment AddOn: lab API and pane. No Azure clients, no credentials." \
+      org.opencontainers.image.source="https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon" \
+      org.opencontainers.image.version="${ADDON_VERSION}" \
+      org.opencontainers.image.licenses="MIT"
+ENV NODE_ENV=production PORT=8080 AMO_STATIC_DIR=/srv/HCW-AzMigrateOrchestrator_Addon/apps/lab-web/dist
 WORKDIR /srv/HCW-AzMigrateOrchestrator_Addon
 # Pull the latest Debian security fixes for the base image (Trivy gates publication on fixed HIGH/CRITICAL CVEs).
 RUN apt-get update && apt-get -y --no-install-recommends upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*
 # install-links (.npmrc) packed the upstream packages into node_modules, so nothing from the upstream tree is needed at runtime;
 # the rule corpus ships inside migration-core.
 COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/node_modules ./node_modules
-COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/apps ./apps
+COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/apps/lab-api/dist ./apps/lab-api/dist
+COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/apps/lab-api/package.json ./apps/lab-api/package.json
+COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/apps/lab-web/dist ./apps/lab-web/dist
 COPY --from=build /srv/HCW-AzMigrateOrchestrator_Addon/package.json ./
 COPY HCW-AzMigrateOrchestrator_Addon/samples/resources-csv ./samples/resources-csv
-# The runtime needs node only: drop the bundled npm/npx/corepack (and their CVE surface), sources and the dev-only harness.
-RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
- && rm -rf apps/*/src apps/ui-harness && chown -R node:node /srv
+# The runtime needs node only: drop the bundled npm/npx/corepack (and their CVE surface).
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack && chown -R node:node /srv
 USER node
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:8080/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

@@ -1,13 +1,20 @@
-# Local development: demo edition only. `docker compose up --build`
+# Local development only: the lab API serving the pane, with the same container hardening the lab host applies.
+# Hosting is the website repository's `addons` Ansible role (docs/deployment/lab-host.md); this file is never deployed.
+# `docker compose up --build` then open http://127.0.0.1:8080/ (the pane, framed by nothing, so frame-ancestors is 'self').
 services:
   lab-api:
     build: { context: .., dockerfile: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab } # parent directory holds both checkouts (ADR-0028)
-    ports: ["8080:8080"]
+    ports: ["127.0.0.1:8080:8080"]
     environment:
       AMO_ASSESSMENT_TTL_MINUTES: "120"
+      AMO_FRAME_ANCESTORS: "'self'"
+      # No human-verification secret locally: uploads are accepted unverified. Never set this on a host.
+      AMO_ALLOW_NO_TURNSTILE: "1"
     read_only: true
     tmpfs: ["/tmp"]
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
     mem_limit: 512m
+    pids_limit: 256
+    cpus: 1
     restart: unless-stopped

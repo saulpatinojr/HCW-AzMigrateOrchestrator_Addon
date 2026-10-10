@@ -6,13 +6,13 @@ documentation and the canonical ADR log live upstream in
 
 | Document | Purpose |
 |---|---|
-| [`website-integration/integration-guide.md`](website-integration/integration-guide.md) | How hybridcloudworks.com mounts the explorer: the npm package, lazy client-only island, Tailwind source scan, Turnstile hand-off, environment variables, acceptance tests |
-| [`website-integration/routes.md`](website-integration/routes.md) | The `/education/migration-labs/*` routes to add to the site's route and content inventories |
+| [`website-integration/integration-guide.md`](website-integration/integration-guide.md) | How hybridcloudworks.com frames the AddOn as a pane at `/tools/migration`: catalogue row, status-proxy shape, sandbox, pane protocol, human verification, env table, what a release hands the site |
+| [`website-integration/routes.md`](website-integration/routes.md) | The site route, AddOn origin, status route, app setting, container and vault-key names |
 | [`api/openapi.yaml`](api/openapi.yaml) | The lab API contract (`tests/contract` keeps it aligned with the implementation) |
-| [`deployment/vps.md`](deployment/vps.md) · [`deployment/coder.md`](deployment/coder.md) | Running the lab API on the Hostinger VPS; the optional Coder guided lab |
-| [`operations/runbook.md`](operations/runbook.md) | Health, logs, restart/upgrade/rollback, rule updates |
-| [`security/threat-model.md`](security/threat-model.md) | Assets, threats and controls of the lab (in-memory inventories, owner tokens, TTL, CORS, Turnstile, no execution surface) |
+| [`deployment/lab-host.md`](deployment/lab-host.md) · [`deployment/coder.md`](deployment/coder.md) | Hosting on the website's lab host through its `addons` role (image, env, owner steps, rollback by digest); the optional Coder guided lab. `deployment/vps.md` is a retired pointer |
+| [`operations/runbook.md`](operations/runbook.md) | Health over SSH, `docker logs hcw-addon-migration`, restart/upgrade/rollback, kill switches, abuse bounds |
+| [`security/threat-model.md`](security/threat-model.md) | Assets, threats and controls (in-memory inventories, owner tokens, TTL, framing and sandbox, fail-closed verification, rate limit and concurrency, trust-proxy, no execution surface) |
 | [`demo/user-guide.md`](demo/user-guide.md) · [`demo/output-bundle.md`](demo/output-bundle.md) | What a user does in the explorer and what the output bundle contains |
 | [`partners/`](partners/) | One-pagers for the platforms the lab showcases (Hostinger, Cloudflare, Docker, HashiCorp, Coder, GitHub, Microsoft) |
-| [`adr/`](adr/) | Copies of the upstream decisions that shape this edition |
+| [`adr/`](adr/) | Copies of the upstream decisions that shape this edition (ADR-0030, the pane model, pending upstream) |
 | [`../VALIDATION.md`](../VALIDATION.md) | What was executed and what was not; limitations |

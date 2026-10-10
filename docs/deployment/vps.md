@@ -1,16 +1,6 @@
-# Deploy the demo to a VPS
+# Retired: the standalone VPS deployment
 
-Prerequisites: a Linux VPS with Docker, a DNS A record for your demo domain, ports 80/443 open.
-
-```bash
-git clone https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon /opt/amo && cd /opt/amo
-echo "DEMO_DOMAIN=migrate-demo.hybridcloudworks.com" > .env
-docker compose -f docker-compose.lab.yml up -d --build
-curl -s https://migrate-demo.hybridcloudworks.com/api/health
-```
-
-Caddy terminates TLS (Let's Encrypt) and forwards to the API; the API container is read-only, non-root, capability-less,
-and keeps everything in memory. Upgrade: `git pull && docker compose -f docker-compose.lab.yml up -d --build`.
-Rollback: `git checkout <previous-tag>` and repeat. Terraform for provisioning the VPS itself: `infrastructure/terraform/lab-hostinger`.
-
-PowerShell equivalent (from a Windows operator box with Docker Desktop and SSH): `ssh ops@migrate-demo.hybridcloudworks.com "cd /opt/amo && git pull && docker compose -f docker-compose.lab.yml up -d --build"`.
+Retired 2026-10-10. The AddOn is hosted by the website repository's `addons` Ansible role on the existing lab host; see
+[`lab-host.md`](lab-host.md). The Compose-with-tunnel file (`docker-compose.lab.yml`), the Cloudflare Tunnel edge (ADR-0019)
+and the standalone Terraform (`infrastructure/terraform/lab-*`, marked retired, deleted in a follow-up pull request) are no
+longer a supported path. This page is kept only so older links resolve.
