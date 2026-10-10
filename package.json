@@ -1,8 +1,8 @@
 {
   "name": "hcw-azmigrateorchestrator-addon",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Hybrid Cloud Works Migration Explorer — the slim web-front edition of the Azure Migration Orchestrator: CSV lab API and site integration, built on the published core (ADR-0028) Workspace manifests use \"*\" for the two upstream packages during the interim: the exact pin is APP_REF (the upstream release tag) until the packages are installed from npm, when they become exact versions.",
+  "description": "Hybrid Cloud Works Migration Explorer — the slim web-front edition of the Azure Migration Orchestrator: CSV lab API, the pane app the website frames at /tools/migration, and site integration, built on the published core (ADR-0028). Workspace manifests use \"*\" for the two upstream packages during the interim: the exact pin is APP_REF (the upstream release tag) until the packages are installed from npm, when they become exact versions.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -17,11 +17,12 @@
   ],
   "scripts": {
     "app:bootstrap": "bash scripts/bootstrap-app.sh",
-    "build": "tsc -b tsconfig.build.json",
+    "build": "tsc -b tsconfig.build.json && npm run build --workspace apps/lab-web",
     "clean": "rm -rf apps/*/dist apps/*/*.tsbuildinfo",
-    "test": "npm run build && node --test \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
+    "build:api": "tsc -b tsconfig.build.json",
+    "test": "npm run build:api && node --test \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
     "test:only": "node --test \"apps/*/dist/**/*.test.js\" \"tests/**/*.test.mjs\"",
-    "typecheck": "tsc -b tsconfig.build.json --dry",
+    "typecheck": "tsc -b tsconfig.build.json --dry && tsc -p apps/lab-web/tsconfig.json",
     "lab:api": "node apps/lab-api/dist/server.js",
     "e2e": "npm run build && npx playwright test",
     "package": "bash scripts/package-repository.sh"

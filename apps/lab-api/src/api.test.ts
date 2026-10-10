@@ -1,15 +1,22 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { noopLogger } from "@hybridcloudworks/migration-core/observability";
-import { createDemoApi } from "./app.js";
+import { createDemoApi, ADDON_VERSION } from "./app.js";
 
 // Repository root from this file (apps/lab-api/dist/api.test.js); the rules now live inside the published core package.
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const sample = readFileSync(join(root, "samples", "resources-csv", "sample-resources.csv"), "utf8");
-const { server } = createDemoApi({ logger: noopLogger, sampleCsvPath: join(root, "samples", "resources-csv", "sample-resources.csv"), staticDir: join(root, "apps", "lab-web", "public") });
+// A stand-in for the built pane (apps/lab-web/dist): index.html plus one hashed asset, so static tests need no vite build.
+const staticDir = mkdtempSync(join(tmpdir(), "amo-static-"));
+mkdirSync(join(staticDir, "assets"));
+writeFileSync(join(staticDir, "index.html"), "<!doctype html><title>Migration assessment</title><div id=root></div>");
+writeFileSync(join(staticDir, "assets", "index-abc123.js"), "console.log(1)");
+const dev = { logger: noopLogger, allowNoTurnstile: true } as const;
+const { server } = createDemoApi({ ...dev, sampleCsvPath: join(root, "samples", "resources-csv", "sample-resources.csv"), staticDir });
 await new Promise<void>((r) => server.listen(0, r));
 const port = (server.address() as { port: number }).port;
 const base = `http://127.0.0.1:${port}`;
@@ -53,12 +60,15 @@ test("static UI is served with security headers and path traversal is blocked", 
   const idx = await fetch(`${base}/`);
   assert.equal(idx.status, 200);
   assert.ok(idx.headers.get("content-security-policy")?.includes("default-src 'self'"));
+  assert.equal(idx.headers.get("cache-control"), "no-cache", "index.html revalidates on every load");
+  assert.equal((await fetch(`${base}/assets/index-abc123.js`)).headers.get("cache-control"), "public, max-age=31536000, immutable");
+  assert.equal((await fetch(`${base}/anything/deep`)).headers.get("cache-control"), "no-cache", "SPA fallback is index.html");
   const trav = await fetch(`${base}/../../package.json`);
   assert.ok(!(await trav.text()).includes('"workspaces"'));
 });
 
 test("CORS: allowed origin gets headers, others do not; preflight 204/403", async () => {
-  const { server: s2 } = createDemoApi({ logger: noopLogger, allowedOrigins: ["https://hybridcloudworks.com"] });
+  const { server: s2 } = createDemoApi({ ...dev, allowedOrigins: ["https://hybridcloudworks.com"] });
   await new Promise<void>((r) => s2.listen(0, r));
   const b2 = `http://127.0.0.1:${(s2.address() as { port: number }).port}`;
   try {
@@ -74,7 +84,7 @@ test("CORS: allowed origin gets headers, others do not; preflight 204/403", asyn
 test("Turnstile: enforced when a secret is configured, verified via siteverify", async () => {
   const seen: string[] = [];
   const fake = (async (url: string, init?: RequestInit) => { seen.push(String(init?.body)); return new Response(JSON.stringify({ success: String(init?.body).includes("response=good") }), { status: 200 }); }) as unknown as typeof fetch;
-  const { server: s3 } = createDemoApi({ logger: noopLogger, turnstileSecret: "secret", fetchImpl: fake });
+  const { server: s3 } = createDemoApi({ logger: noopLogger, turnstileSecret: "secret", turnstileSiteKey: "1x00000000000000000000AA", fetchImpl: fake });
   await new Promise<void>((r) => s3.listen(0, r));
   const b3 = `http://127.0.0.1:${(s3.address() as { port: number }).port}`;
   try {
@@ -90,7 +100,7 @@ test("Turnstile: enforced when a secret is configured, verified via siteverify",
 
 test("workspace: disabled provider hides the feature; in-memory provider issues a one-time bundle token", async () => {
   const { InMemoryWorkspaceProvider } = await import("@hybridcloudworks/migration-core/workspace-provider");
-  const { server: s4, store } = createDemoApi({ logger: noopLogger, workspaceProvider: new InMemoryWorkspaceProvider(), publicBaseUrl: "https://labs-api.example" });
+  const { server: s4, store } = createDemoApi({ ...dev, workspaceProvider: new InMemoryWorkspaceProvider(), publicBaseUrl: "https://labs-api.example" });
   await new Promise<void>((r) => s4.listen(0, r));
   const b4 = `http://127.0.0.1:${(s4.address() as { port: number }).port}`;
   try {
@@ -114,7 +124,7 @@ test("rules coverage is public; stats are opt-in and contain aggregates only", a
   const cov = (await (await fetch(`${base}/api/rules/coverage`)).json()) as { count: number; types: Array<{ resourceType: string; support: object }> };
   assert.ok(cov.count >= 24 && cov.types[0].support);
   assert.equal((await fetch(`${base}/api/stats`)).status, 404);
-  const { server: s5 } = createDemoApi({ logger: noopLogger, telemetry: true });
+  const { server: s5 } = createDemoApi({ ...dev, telemetry: true });
   await new Promise<void>((r) => s5.listen(0, r));
   const b5 = `http://127.0.0.1:${(s5.address() as { port: number }).port}`;
   try {
@@ -126,4 +136,107 @@ test("rules coverage is public; stats are opt-in and contain aggregates only", a
     assert.ok(!JSON.stringify(st).includes("00000000-0000-4000-8000-000000000001"), "no subscription IDs in stats");
     assert.ok(!JSON.stringify(st).includes("vm-billing-01"), "no resource names in stats");
   } finally { s5.close(); }
+});
+
+const listen = async (o: Parameters<typeof createDemoApi>[0]) => { const api = createDemoApi(o); await new Promise<void>((r) => api.server.listen(0, r)); return { ...api, url: `http://127.0.0.1:${(api.server.address() as { port: number }).port}` }; };
+const post = (b: string, headers: Record<string, string> = {}) => fetch(`${b}/api/assessments`, { method: "POST", headers: { "content-type": "text/csv", ...headers }, body: sample });
+
+test("framing: default frame-ancestors 'none' sends DENY; a configured list drops x-frame-options and lands in the CSP", async () => {
+  const idx = await fetch(`${base}/api/health`);
+  assert.ok(idx.headers.get("content-security-policy")?.includes("frame-ancestors 'none'"));
+  assert.equal(idx.headers.get("x-frame-options"), "DENY");
+  assert.ok(idx.headers.get("content-security-policy")?.includes("base-uri 'none'; form-action 'self'"));
+  assert.ok(!idx.headers.get("content-security-policy")?.includes("challenges.cloudflare.com"), "no widget origin without a site key");
+  const s = await listen({ ...dev, frameAncestors: ["'self'", "https://hybridcloudworks.com", "https://www.hybridcloudworks.com"], turnstileSecret: "s", turnstileSiteKey: "1x00000000000000000000AA" });
+  try {
+    const r = await fetch(`${s.url}/api/health`);
+    const csp = r.headers.get("content-security-policy") ?? "";
+    assert.ok(csp.includes("frame-ancestors 'self' https://hybridcloudworks.com https://www.hybridcloudworks.com"), csp);
+    assert.equal(r.headers.get("x-frame-options"), null);
+    assert.ok(csp.includes("script-src 'self' https://challenges.cloudflare.com") && csp.includes("frame-src https://challenges.cloudflare.com"), csp);
+  } finally { s.server.close(); }
+});
+
+test("health is the flat AddOn envelope and x-addon-* headers ride on JSON, static and error responses", async () => {
+  const s = await listen({ ...dev, siteOrigins: ["https://hybridcloudworks.com/", "https://www.hybridcloudworks.com"], sampleCsvPath: join(root, "samples", "resources-csv", "sample-resources.csv"), staticDir, version: "9.9.9" });
+  try {
+    const r = await fetch(`${s.url}/api/health`);
+    const h = (await r.json()) as Record<string, unknown>;
+    assert.deepEqual(Object.keys(h).sort(), ["asOf", "azureConnectivity", "capabilities", "edition", "id", "ok", "rulesLoaded", "siteOrigins", "turnstile", "version", "workspace"]);
+    assert.equal(h.ok, true); assert.equal(h.id, "migration"); assert.equal(h.version, "9.9.9"); assert.equal(h.edition, "demo");
+    assert.deepEqual(h.capabilities, ["assessments", "sample-csv", "bundle-download"]);
+    assert.deepEqual(h.siteOrigins, ["https://hybridcloudworks.com", "https://www.hybridcloudworks.com"]);
+    assert.deepEqual(h.turnstile, { required: false, siteKey: null });
+    assert.ok(!Number.isNaN(Date.parse(String(h.asOf))));
+    for (const r2 of [r, await fetch(`${s.url}/`), await fetch(`${s.url}/api/nope`), await fetch(`${s.url}/api/assessments/00000000-0000-4000-8000-000000000000`)]) {
+      assert.equal(r2.headers.get("x-addon-id"), "migration");
+      assert.equal(r2.headers.get("x-addon-version"), "9.9.9");
+      assert.equal(r2.headers.get("x-content-type-options"), "nosniff");
+      assert.equal(r2.headers.get("referrer-policy"), "no-referrer");
+    }
+  } finally { s.server.close(); }
+  const real = (await (await fetch(`${base}/api/health`)).json()) as { version: string; turnstile: { required: boolean; siteKey: string | null } };
+  assert.equal(real.version, ADDON_VERSION);
+  assert.match(ADDON_VERSION, /^\d+\.\d+\.\d+/);
+  const { InMemoryWorkspaceProvider } = await import("@hybridcloudworks/migration-core/workspace-provider");
+  const ws = await listen({ ...dev, workspaceProvider: new InMemoryWorkspaceProvider(), turnstileSecret: "s", turnstileSiteKey: "1x00000000000000000000AA" });
+  try {
+    const h = (await (await fetch(`${ws.url}/api/health`)).json()) as { capabilities: string[]; turnstile: { required: boolean; siteKey: string } };
+    assert.ok(h.capabilities.includes("workspace"));
+    assert.deepEqual(h.turnstile, { required: true, siteKey: "1x00000000000000000000AA" });
+  } finally { ws.server.close(); }
+});
+
+test("rate limit: the bucket empties after the configured posts and 429 carries Retry-After; workspace POSTs share it", async () => {
+  const s = await listen({ ...dev, rateLimit: { postsPerWindow: 3, windowMs: 10 * 60000 } });
+  try {
+    for (let i = 0; i < 3; i++) assert.equal((await post(s.url)).status, 201, `post ${i + 1}`);
+    const limited = await post(s.url);
+    assert.equal(limited.status, 429);
+    assert.match(limited.headers.get("retry-after") ?? "", /^\d+$/);
+    assert.equal(((await limited.json()) as { error: { code: string } }).error.code, "rate_limited");
+    const ws = await fetch(`${s.url}/api/assessments/00000000-0000-4000-8000-000000000000/workspace`, { method: "POST" });
+    assert.equal(ws.status, 429, "the workspace route draws from the same bucket");
+    assert.equal((await fetch(`${s.url}/api/health`)).status, 200, "reads are never limited");
+  } finally { s.server.close(); }
+});
+
+test("overload: with maxConcurrent 0 the first POST answers 503 overloaded with Retry-After 5", async () => {
+  const s = await listen({ ...dev, maxConcurrent: 0 });
+  try {
+    const r = await post(s.url);
+    assert.equal(r.status, 503);
+    assert.equal(r.headers.get("retry-after"), "5");
+    assert.equal(((await r.json()) as { error: { code: string } }).error.code, "overloaded");
+  } finally { s.server.close(); }
+});
+
+test("Turnstile fails closed: no secret → 503 turnstile_not_configured unless explicitly allowed; a secret without a site key refuses to start", async () => {
+  const closed = await listen({ logger: noopLogger });
+  try {
+    const r = await post(closed.url);
+    assert.equal(r.status, 503);
+    assert.equal(((await r.json()) as { error: { code: string } }).error.code, "turnstile_not_configured");
+    assert.equal((await fetch(`${closed.url}/api/health`)).status, 200, "health still answers");
+  } finally { closed.server.close(); }
+  assert.equal((await post(base)).status, 201, "allowNoTurnstile lets local development through");
+  assert.throws(() => createDemoApi({ logger: noopLogger, turnstileSecret: "s" }), /AMO_TURNSTILE_SITE_KEY/);
+  const { server: tolerated } = createDemoApi({ logger: noopLogger, turnstileSecret: "s", allowNoTurnstile: true });
+  tolerated.close();
+});
+
+test("client address: socket peer by default; first x-forwarded-for value only with trustProxy", async () => {
+  const seen: string[] = [];
+  const fake = (async (_url: string, init?: RequestInit) => { seen.push(String(init?.body)); return new Response(JSON.stringify({ success: true }), { status: 200 }); }) as unknown as typeof fetch;
+  const base_ = { logger: noopLogger, turnstileSecret: "secret", turnstileSiteKey: "1x00000000000000000000AA", fetchImpl: fake, siteverifyUrl: "http://siteverify.test/verify" };
+  const socketOnly = await listen(base_);
+  const proxied = await listen({ ...base_, trustProxy: true });
+  try {
+    const spoof = { "x-turnstile-token": "t", "x-forwarded-for": "203.0.113.9, 10.0.0.1", "cf-connecting-ip": "198.51.100.1" };
+    assert.equal((await post(socketOnly.url, spoof)).status, 201);
+    assert.ok(seen[0].includes("remoteip=127.0.0.1"), `socket address expected: ${seen[0]}`);
+    assert.equal((await post(proxied.url, spoof)).status, 201);
+    assert.ok(seen[1].includes("remoteip=203.0.113.9"), `first x-forwarded-for expected: ${seen[1]}`);
+    assert.ok(!seen.some((b) => b.includes("198.51.100.1")), "cf-connecting-ip is never read");
+  } finally { socketOnly.server.close(); proxied.server.close(); }
 });

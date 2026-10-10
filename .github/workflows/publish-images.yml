@@ -1,6 +1,13 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
-# Lab API image. Build context is the workspace root holding both checkouts (ADR-0028 interim contract).
-# Order matters: build locally -> scan -> push. A failing scan publishes nothing. Deployments reference the digest, never a tag.
+# AddOn image docker.io/hybridcloudworks/hcw-addon-migration (program decision 2026-10-09: Docker Hub only, no GHCR).
+# Build context is the workspace root holding both checkouts (ADR-0028 interim contract).
+# Order matters: build locally -> scan -> push. A failing scan publishes nothing. The website pins the digest this run prints
+# in lab-host/ansible/group_vars/all.yml (addons[].image_digest); tags are for humans.
+#
+# Login is the Docker OIDC connection, never a long-lived token: docker/login-action v4.5.0+ with no password, registry
+# docker.io and DOCKERHUB_OIDC_CONNECTIONID set exchanges a GitHub ID token at identity.docker.com for a short-lived Docker
+# access token. The repository variables DOCKERHUB_ENABLED and DOCKERHUB_CONNECTION are owner steps (docs/deployment/lab-host.md);
+# until they are set the job is skipped and the website catalogue row stays `coming`.
 name: publish-images
 on:
   push:
@@ -8,24 +15,39 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  packages: write
-  id-token: write
-  attestations: write
 env:
   APP_REF: v0.2.1
-  IMAGE: ghcr.io/${{ github.repository_owner }}/azure-migration-orchestrator-lab
+  IMAGE: docker.io/hybridcloudworks/hcw-addon-migration
+  DOCKERHUB_ORG: hybridcloudworks
 jobs:
   build-scan-publish:
+    if: vars.DOCKERHUB_ENABLED == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # the Docker token exchange, and Sigstore's signing certificate
+      attestations: write
     steps:
+      # Before the builds, so a missing connection ID fails in seconds rather than after them.
+      - name: DOCKERHUB_CONNECTION holds a connection ID
+        env:
+          CONNECTION_ID: ${{ vars.DOCKERHUB_CONNECTION }}
+        run: |
+          set -euo pipefail
+          uuid='^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+          if [[ ! "$CONNECTION_ID" =~ $uuid ]]; then
+            echo "::error::DOCKERHUB_ENABLED is true, but the repository variable DOCKERHUB_CONNECTION is not an OIDC connection ID (a UUID, copied from the connection in Docker Home). See docs/deployment/lab-host.md."
+            exit 1
+          fi
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with: { path: HCW-AzMigrateOrchestrator_Addon }
       - name: Check out the upstream product at the pinned release
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with: { repository: saulpatinojr/HCW-AzMigrateOrchestrator_App, ref: "${{ env.APP_REF }}", path: HCW-AzMigrateOrchestrator_App }
       - uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
-      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
-        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - id: version
+        name: Image version from the AddOn package
+        run: echo "version=$(node -p "require('./HCW-AzMigrateOrchestrator_Addon/package.json').version")" >> "$GITHUB_OUTPUT"
       - id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
@@ -38,18 +60,30 @@ jobs:
         with:
           context: .
           file: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab
+          build-args: ADDON_VERSION=${{ steps.version.outputs.version }}
           load: true
           push: false
           tags: ${{ env.IMAGE }}:scan
       - name: Scan before publishing (HIGH/CRITICAL, fixed only)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with: { image-ref: "${{ env.IMAGE }}:scan", exit-code: "1", severity: "HIGH,CRITICAL", ignore-unfixed: true }
+      # After the scan, so the short-lived token's life is spent on the push and the attestation alone.
+      # DOCKERHUB_OIDC_CONNECTIONID is the name the action reads; DOCKERHUB_CONNECTION is ours. EXPIREIN accepts 300-3600.
+      - name: Log in to Docker Hub through the OIDC connection
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_CONNECTION }}
+          DOCKERHUB_OIDC_EXPIREIN: '900'
+        with:
+          registry: docker.io
+          username: ${{ env.DOCKERHUB_ORG }}
       - id: build
         name: Push with provenance and SBOM
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
           file: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab
+          build-args: ADDON_VERSION=${{ steps.version.outputs.version }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -61,5 +95,14 @@ jobs:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
-      - name: Record the immutable digest for deployments
-        run: echo "${{ env.IMAGE }}@${{ steps.build.outputs.digest }}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Record the immutable digest for the website to pin
+        run: |
+          {
+            echo "### Published"
+            echo
+            echo '```'
+            echo "${{ env.IMAGE }}@${{ steps.build.outputs.digest }}"
+            echo '```'
+            echo
+            echo "Pin it in the website repository: lab-host/ansible/group_vars/all.yml, addons[].image_digest for id migration (image_tag ${{ steps.version.outputs.version }})."
+          } >> "$GITHUB_STEP_SUMMARY"

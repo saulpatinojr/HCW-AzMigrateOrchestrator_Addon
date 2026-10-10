@@ -25,6 +25,8 @@ jobs:
         run: npm ci && npm run build
         working-directory: HCW-AzMigrateOrchestrator_App
       - run: npm ci
+      - name: Build the API and the pane (apps/lab-web/dist)
+        run: npm run build
       - run: npm test
       - name: Package repository ZIP (artifact)
         run: bash scripts/package-repository.sh
@@ -32,7 +34,8 @@ jobs:
         with: { name: hcw-azmigrateorchestrator-addon, path: HCW-AzMigrateOrchestrator_Addon/hcw-azmigrateorchestrator-addon.zip, retention-days: 7 }
 
   e2e:
-    # Browser e2e of the explorer (published UI package through the harness against the real lab API).
+    # Browser e2e of the pane: the published UI package built into apps/lab-web, served by the real lab API, framed by a host
+    # page with the site's sandbox, with the human-verification widget stubbed and siteverify mocked (playwright.config.ts).
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: HCW-AzMigrateOrchestrator_Addon } }
     steps:

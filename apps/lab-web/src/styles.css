@@ -1,0 +1,63 @@
+@import "tailwindcss";
+@source "../../../node_modules/@hybridcloudworks/migration-ui/dist";
+
+/*
+ * HCW theme tokens, copied from HCW-HybridCloudWorks/frontend/src/index.css (`:root` and `.dark` under `@layer base`,
+ * read 2026-10-10) so the pane matches the site that frames it. The site switches with a `.dark` class; the pane has no
+ * site state, so it follows `prefers-color-scheme`, which is also what Tailwind's `dark:` variant keys on here.
+ * Fonts: the site's display faces (Goldman, Turret Road) are self-hosted there and not loaded here (CSP `font-src` is
+ * `default-src 'self'`); the names stay first in the stacks so a visitor with them installed sees the same faces.
+ */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 20% 12%;
+  --card: 0 0% 100%;
+  --primary: 222 20% 12%;
+  --primary-foreground: 0 0% 100%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 220 12% 38%;
+  --border: 220 14% 95%;
+  --ring: 222 20% 18%;
+  --accent: 217 91% 50%; /* --hcw-accent #137fec */
+  --font-display: "Goldman", "Turret Road", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 240 9% 4%;
+    --foreground: 0 0% 100%;
+    --card: 240 6% 7%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 222 20% 12%;
+    --muted: 240 6% 11%;
+    --muted-foreground: 215 16% 80%;
+    --border: 240 6% 15%;
+    --ring: 240 6% 18%;
+  }
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-accent: hsl(var(--accent));
+  --font-display: var(--font-display);
+}
+
+html, body { background: hsl(var(--background)); color: hsl(var(--foreground)); min-height: 100%; }
+h1, h2, h3 { font-family: var(--font-display); }
+code, pre { font-family: var(--font-mono); }
+a { color: hsl(var(--accent)); }
+
+/* Interim (VALIDATION.md): the UI package's partner panel names vendors that are not visitor copy on the site.
+   `partners={false}` replaces this rule once APP_REF reaches v0.3.0. */
+[aria-label="Powered by"] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

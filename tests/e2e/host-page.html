@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Host page (e2e stand-in for /tools/migration)</title>
+</head>
+<body>
+<h1>Tools: migration</h1>
+<!-- The production sandbox for a catalogue row with the `downloads` capability (standard section 8). -->
+<iframe id="pane" title="Azure migration assessment" src="http://127.0.0.1:18080/" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads" style="width: 100%; height: 80vh; border: 0"></iframe>
+<script>
+  // Accept a message only the way the site does: origin, source, type, id and a known state.
+  window.__hcwAddonMessages = [];
+  const ADDON = { id: "migration", origin: "http://127.0.0.1:18080" };
+  const STATES = ["loading", "ready", "working", "unavailable"];
+  window.addEventListener("message", (event) => {
+    const frame = document.getElementById("pane");
+    if (event.origin !== ADDON.origin || event.source !== frame.contentWindow) return;
+    const d = event.data;
+    if (!d || d.type !== "hcw-addon" || d.id !== ADDON.id || !STATES.includes(d.state)) return;
+    window.__hcwAddonMessages.push({ state: d.state, navigate: typeof d.navigate === "string" ? d.navigate : undefined });
+  });
+</script>
+</body>
+</html>

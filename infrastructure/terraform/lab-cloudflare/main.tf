@@ -1,3 +1,4 @@
+# Retired 2026-10-10: superseded by the website repository's `addons` Ansible role; not applied to the existing host. Kept only until the follow-up pull request deletes this directory.
 # Cloudflare edge for the lab: Tunnel, DNS, WAF, rate limiting, Turnstile. Zero inbound ports on the VPS (ADR-0019).
 terraform {
   required_version = ">= 1.9.0"
