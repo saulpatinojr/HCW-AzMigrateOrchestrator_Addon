@@ -71,6 +71,7 @@ What this AddOn answers (flat envelope, `docs/api/openapi.yaml` `AddOnHealth`):
   `Origin: null`, exact-origin CORS refuses it, and the verification widget cannot bind to its hostname. The AddOn is always
   cross-origin to the site, so scripts plus same-origin cannot lift the sandbox.
 - `allow-downloads` because the row has `downloads`; never `allow-top-navigation`, never `allow-modals`.
+- Every response carries `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `Cross-Origin-Opener-Policy: same-origin`, `X-Addon-Id` and `X-Addon-Version` (the header set shared by every HCW AddOn).
 - The AddOn answers every response with `Content-Security-Policy: … frame-ancestors 'self' https://hybridcloudworks.com https://www.hybridcloudworks.com …`
   (from `AMO_FRAME_ANCESTORS`) and no `X-Frame-Options`, so the browser lets the site frame it and nobody else.
 

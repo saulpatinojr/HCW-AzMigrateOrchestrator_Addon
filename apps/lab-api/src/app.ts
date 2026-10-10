@@ -106,7 +106,7 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
       "base-uri 'none'",
       "form-action 'self'",
     ].join("; ");
-    const h: Record<string, string> = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store", "content-security-policy": csp, "x-addon-id": ADDON_ID, "x-addon-version": version };
+    const h: Record<string, string> = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "permissions-policy": "camera=(), microphone=(), geolocation=()", "cross-origin-opener-policy": "same-origin", "cache-control": "no-store", "content-security-policy": csp, "x-addon-id": ADDON_ID, "x-addon-version": version };
     if (frameAncestors.length === 1 && frameAncestors[0] === "'none'") h["x-frame-options"] = "DENY";
     return h;
   };
@@ -221,7 +221,7 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
         if (!item) return error(res, 404, "not_found", "assessment not found, expired, or owner token missing/invalid");
         if (req.method === "DELETE") { store.delete(m[1], ownerToken); return json(res, 200, { deleted: true }); }
         if (m[2] === "/workspace") {
-          if (req.method !== "POST") return error(res, 405, "method", "POST required");
+          if (req.method !== "POST") return error(res, 405, "method_not_allowed", "POST required");
           if (workspaces.name === "disabled") return error(res, 404, "not_configured", "guided lab workspaces are not enabled on this deployment");
           const token = store.issueBundleToken(m[1], ownerToken)!;
           const ws = await workspaces.createWorkspace({ assessmentId: m[1], ownerId: "lab", artifacts: { bundleToken: token, apiBaseUrl: opts.publicBaseUrl ?? "" }, ttlMinutes: 240 });
@@ -251,7 +251,7 @@ export function createDemoApi(opts: DemoApiOptions = {}): { server: Server; stor
     } catch (e) {
       if (e instanceof IngestionError) return error(res, 422, "ingestion_failed", e.errors.join("; "), { warnings: e.warnings });
       log.error("request failed", { reqId, message: (e as Error).message });
-      return error(res, 500, "internal", "unexpected error (see server log, request " + reqId + ")");
+      return error(res, 500, "internal_error", "unexpected error (see server log, request " + reqId + ")");
     }
   });
   return { server, store };

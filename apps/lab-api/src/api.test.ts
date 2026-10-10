@@ -177,6 +177,8 @@ test("health is the flat AddOn envelope and x-addon-* headers ride on JSON, stat
       assert.equal(r2.headers.get("x-addon-version"), "9.9.9");
       assert.equal(r2.headers.get("x-content-type-options"), "nosniff");
       assert.equal(r2.headers.get("referrer-policy"), "no-referrer");
+      assert.equal(r2.headers.get("permissions-policy"), "camera=(), microphone=(), geolocation=()");
+      assert.equal(r2.headers.get("cross-origin-opener-policy"), "same-origin");
     }
   } finally { s.server.close(); }
   const real = (await (await fetch(`${base}/api/health`)).json()) as { version: string; turnstile: { required: boolean; siteKey: string | null } };
