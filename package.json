@@ -1,6 +1,6 @@
 {
   "name": "hcw-azmigrateorchestrator-addon",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Hybrid Cloud Works Migration Explorer \u2014 the slim web-front edition of the Azure Migration Orchestrator: CSV lab API, the pane app the website frames at /tools/migration, and site integration, built on the published core (ADR-0028, ADR-0030). The two upstream packages are the tarballs attached to the upstream GitHub Release of the pinned v* tag, by URL and integrity hash; core-update.yml bumps the tag. Workspace manifests use \"*\" for them.",
   "license": "MIT",
@@ -27,8 +27,8 @@
     "package": "bash scripts/package-repository.sh"
   },
   "dependencies": {
-    "@hybridcloudworks/migration-core": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.0/hybridcloudworks-migration-core-0.3.0.tgz",
-    "@hybridcloudworks/migration-ui": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.0/hybridcloudworks-migration-ui-0.3.0.tgz"
+    "@hybridcloudworks/migration-core": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.1/hybridcloudworks-migration-core-0.3.1.tgz",
+    "@hybridcloudworks/migration-ui": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.1/hybridcloudworks-migration-ui-0.3.1.tgz"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
