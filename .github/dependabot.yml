@@ -7,6 +7,9 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    # One pull request for every action pin: github/codeql-action's init and analyze must move together (a lone analyze
+    # bump fails the CodeQL upload, as #10 showed), and one grouped PR is one CI run and one decision instead of five.
+    groups: { all-actions: { patterns: ["*"] } }
   - package-ecosystem: docker
     directory: /infrastructure/docker
     schedule: { interval: weekly }

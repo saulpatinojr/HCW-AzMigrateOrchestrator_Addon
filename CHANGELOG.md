@@ -5,6 +5,7 @@ The engine, rules, CLI and UI components are versioned and released upstream in 
 
 ## Unreleased — 0.3.1: the upstream packages are release tarballs pinned by URL and hash
 
+- Dependabot groups every GitHub Actions pin into one `all-actions` pull request (a lone `codeql-action/analyze` bump failed the CodeQL upload in #10; `init` and `analyze` must move together). `security.yml` moves both to v4.38.3 in one step, as the upstream repository did.
 - `package.json` pins `@hybridcloudworks/migration-core` and `@hybridcloudworks/migration-ui` as the tarballs attached to the upstream GitHub Release of `v0.3.0`, by URL; `package-lock.json` carries their integrity hash, which `npm ci` verifies. The ADR-0028 interim contract is retired: no sibling checkout, no `APP_REF`, no `scripts/bootstrap-app.sh`, no `.npmrc` `install-links`; CI, the Copilot setup, `publish-images.yml`, `Dockerfile.lab` and `docker-compose.yml` build from this repository alone. `core-update.yml` bumps both URLs, re-locks and tests the edition against each new upstream release. The same release-asset method serves the Cloud Assessor and NetworkEyes pairs (ADR-0028 copy amended; upstream ADR-0030).
 - The pane adopts the `v0.3.0` explorer props: `partners={false}` replaces the interim CSS rule that hid the partner panel, and `contactPath` + `onNavigate` hand the contact link to the host instead of intercepting clicks.
 
