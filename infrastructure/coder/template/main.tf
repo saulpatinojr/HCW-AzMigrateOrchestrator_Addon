@@ -10,7 +10,7 @@ terraform {
 variable "workspace_image" {
   type        = string
   description = "Lab workspace image (code-server, terraform, pwsh, az cli; no credentials)"
-  default     = "ghcr.io/saulpatinojr/azure-migration-orchestrator-lab-workspace:latest"
+  default     = "docker.io/hybridcloudworks/hcw-lab:latest"
 }
 
 data "coder_workspace" "me" {}
