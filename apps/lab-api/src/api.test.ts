@@ -279,3 +279,22 @@ function cspDirectives(header: string | null | undefined): Map<string, string> {
   }
   return out;
 }
+
+test("coder template: enforces ADR-0032 / LAB-5 sandbox boundary and hcw-boot dispatcher", () => {
+  const tf = readFileSync(join(root, "infrastructure", "coder", "template", "main.tf"), "utf8");
+  const code = tf.split("\n").map((l) => l.split("#")[0]).join("\n");
+  assert.match(code, /host\s*=\s*"tcp:\/\/coder-docker-proxy:2375"/);
+  assert.match(code, /uid\s*=\s*"65534:65534"/);
+  assert.match(code, /home\s*=\s*"\/tmp\/home"/);
+  assert.match(code, /assessment_dir\s*=\s*"\/tmp\/home\/assessment"/);
+  assert.match(code, /subdomain\s*=\s*true/);
+  assert.doesNotMatch(code, /subdomain\s*=\s*false/);
+  assert.match(code, /privileged\s*=\s*false/);
+  assert.match(code, /security_opts\s*=\s*\["no-new-privileges:true"\]/);
+  assert.match(code, /drop\s*=\s*\["ALL"\]/);
+  assert.doesNotMatch(code, /host_path/);
+  assert.doesNotMatch(code, /docker\.sock/);
+  assert.match(code, /\/usr\/local\/libexec\/hcw-boot\/hcw-boot migration-assessment/);
+  assert.match(code, /python3 -m zipfile -e/);
+});
+
