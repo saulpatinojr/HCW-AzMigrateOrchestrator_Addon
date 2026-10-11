@@ -31,8 +31,8 @@
     "@hybridcloudworks/migration-ui": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.1/hybridcloudworks-migration-ui-0.3.1.tgz"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.1",
+    "@playwright/test": "^1.64.0",
     "@types/node": "^26.6.4",
-    "typescript": "^5.6.3"
+    "typescript": "^7.0.2"
   }
 }
