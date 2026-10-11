@@ -1,6 +1,8 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
 # Pushes the guided-lab Coder template when it changes. Requires repository secrets CODER_URL and CODER_SESSION_TOKEN
-# (a template-admin token; never a personal admin token).
+# (a template-admin token; never a personal admin token) and the repository variable CODER_TEMPLATE_ENABLED set to
+# "true". Without the variable the job is skipped, not failed: the lab host runs the add-on with the workspace provider
+# disabled, and an Actions pin bump (which edits this file) must not produce a red run on main for a missing secret.
 name: coder-template
 on:
   push:
@@ -11,6 +13,7 @@ permissions:
   contents: read
 jobs:
   push-template:
+    if: vars.CODER_TEMPLATE_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: lab
     steps:
