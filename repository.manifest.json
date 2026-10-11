@@ -9,7 +9,7 @@
     "docker-compose.yml",
     "docs/website-integration/integration-guide.md", "docs/website-integration/routes.md", "docs/api/openapi.yaml", "docs/deployment/lab-host.md", "docs/deployment/coder.md", "docs/security/threat-model.md", "docs/adr/ADR-0028-appliance-upstream-web-front-downstream.md",
     "samples/resources-csv/sample-resources.csv",
-    "scripts/package-repository.sh", "scripts/package-repository.ps1", "scripts/bootstrap-app.sh",
+    "scripts/package-repository.sh", "scripts/package-repository.ps1",
     ".github/copilot-instructions.md", ".github/workflows/ci.yml", ".github/workflows/core-update.yml", ".github/workflows/publish-images.yml", ".github/workflows/iac-validate.yml",
     "infrastructure/docker/Dockerfile.lab", "infrastructure/coder/template/main.tf",
     "apps/lab-api/src/app.ts", "apps/lab-api/src/server.ts", "apps/lab-web/index.html", "apps/lab-web/src/main.tsx", "apps/lab-web/src/PaneApp.tsx", "apps/lab-web/src/pane.ts",

@@ -2,7 +2,7 @@
   "name": "hcw-azmigrateorchestrator-addon",
   "version": "0.3.0",
   "private": true,
-  "description": "Hybrid Cloud Works Migration Explorer — the slim web-front edition of the Azure Migration Orchestrator: CSV lab API, the pane app the website frames at /tools/migration, and site integration, built on the published core (ADR-0028). Workspace manifests use \"*\" for the two upstream packages during the interim: the exact pin is APP_REF (the upstream release tag) until the packages are installed from npm, when they become exact versions.",
+  "description": "Hybrid Cloud Works Migration Explorer \u2014 the slim web-front edition of the Azure Migration Orchestrator: CSV lab API, the pane app the website frames at /tools/migration, and site integration, built on the published core (ADR-0028, ADR-0030). The two upstream packages are the tarballs attached to the upstream GitHub Release of the pinned v* tag, by URL and integrity hash; core-update.yml bumps the tag. Workspace manifests use \"*\" for them.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -16,7 +16,6 @@
     "apps/*"
   ],
   "scripts": {
-    "app:bootstrap": "bash scripts/bootstrap-app.sh",
     "build": "tsc -b tsconfig.build.json && npm run build --workspace apps/lab-web",
     "clean": "rm -rf apps/*/dist apps/*/*.tsbuildinfo",
     "build:api": "tsc -b tsconfig.build.json",
@@ -28,8 +27,8 @@
     "package": "bash scripts/package-repository.sh"
   },
   "dependencies": {
-    "@hybridcloudworks/migration-core": "file:../HCW-AzMigrateOrchestrator_App/dist-packages/migration-core",
-    "@hybridcloudworks/migration-ui": "file:../HCW-AzMigrateOrchestrator_App/dist-packages/migration-ui"
+    "@hybridcloudworks/migration-core": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.0/hybridcloudworks-migration-core-0.3.0.tgz",
+    "@hybridcloudworks/migration-ui": "https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/download/v0.3.0/hybridcloudworks-migration-ui-0.3.0.tgz"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
