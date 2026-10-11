@@ -5,7 +5,8 @@
 [![ci](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/ci.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/ci.yml)
 [![security](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/security.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/security.yml)
 [![core-update](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/core-update.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/core-update.yml)
-[![upstream](https://img.shields.io/badge/upstream-HCW--AzMigrateOrchestrator__App%20v0.2.1-6f42c1?logo=github)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/tag/v0.2.1)
+[![live](https://img.shields.io/website?url=https%3A%2F%2Fmigration.lab.hybridcloudworks.com%2Fapi%2Fhealth&label=live%20at%20%2Ftools%2Fmigration&up_message=yes&down_message=down)](https://hybridcloudworks.com/tools/migration)
+[![upstream](https://img.shields.io/badge/upstream-HCW--AzMigrateOrchestrator__App%20v0.3.1-6f42c1?logo=github)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/tag/v0.3.1)
 [![node](https://img.shields.io/badge/node-%3E%3D26-339933?logo=node.js&logoColor=white)](docs/adr/ADR-0029-node-26-runtime-floor.md)
 [![docker hub](https://img.shields.io/badge/docker.io-hybridcloudworks%2Fhcw--addon--migration-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hybridcloudworks/hcw-addon-migration)
 [![license](https://img.shields.io/github/license/saulpatinojr/HCW-AzMigrateOrchestrator_Addon)](LICENSE)
@@ -13,6 +14,10 @@
 Upload the `resources.csv` exported from the Azure portal and see how every resource would move — with evidence, confidence,
 prerequisites, risks, and generated Terraform, scripts and runbooks. The explorer **never touches Azure, never asks for
 credentials and cannot execute anything**; inventories are processed in memory only and expire.
+
+**Try it in two minutes.** Open [hybridcloudworks.com/tools/migration](https://hybridcloudworks.com/tools/migration),
+upload the CSV that the Azure portal gives you under *All resources → Export to CSV*, answer a few questions (or skip
+them), and read the plan or download the bundle. No account, no sign-in, nothing installed.
 
 This repository is the slim, downstream edition of the appliance in
 [`HCW-AzMigrateOrchestrator_App`](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App): the **CSV lab API**, the
@@ -43,8 +48,9 @@ flowchart LR
 ```
 
 **Updates flow downstream, when compatible.** `.github/workflows/core-update.yml` watches upstream releases (every six
-hours and on demand). For each new release it builds it, installs it here, runs this repository's unit tests and the
-Playwright suite, and opens a pull request bumping the pinned release, labelled `compatible` or `needs-adaptation`. A
+hours and on demand). For each new release it points `package.json` at the release's two package tarballs, re-locks
+(so the lock carries their hashes), runs this repository's unit tests and the Playwright suite, and opens a pull request
+bumping the pinned release, labelled `compatible` or `needs-adaptation`. A
 compatible PR auto-merges only if the repository variable `CORE_AUTOMERGE` is `true`. The engine, rules and UI components
 are never edited here; `tests/security/edition-boundary.test.mjs` fails the build if anything here could reach Azure.
 Decision records: [ADR-0028](docs/adr/ADR-0028-appliance-upstream-web-front-downstream.md), [ADR-0008](docs/adr/ADR-0008-hard-edition-boundary-the-demo-cannot-construct-an-azure-provider.md).
