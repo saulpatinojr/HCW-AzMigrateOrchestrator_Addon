@@ -54,10 +54,6 @@ h1, h2, h3 { font-family: var(--font-display); }
 code, pre { font-family: var(--font-mono); }
 a { color: hsl(var(--accent)); }
 
-/* Interim (VALIDATION.md): the UI package's partner panel names vendors that are not visitor copy on the site.
-   `partners={false}` replaces this rule once APP_REF reaches v0.3.0. */
-[aria-label="Powered by"] { display: none !important; }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

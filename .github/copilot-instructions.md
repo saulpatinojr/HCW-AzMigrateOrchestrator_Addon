@@ -15,4 +15,4 @@ Never expose secrets. Never treat a stale/older-head check as current evidence. 
 
 ## This repository
 
-This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`: the slim web-front edition (CSV lab API, static harness, site integration, lab infrastructure). The engine, rules, CLI and UI components live upstream in `saulpatinojr/HCW-AzMigrateOrchestrator_App` and arrive here as `@hybridcloudworks/migration-core` / `@hybridcloudworks/migration-ui` at the ref pinned in `.github/workflows` (`APP_REF`, ADR-0028). Build needs that sibling checkout: `npm run app:bootstrap`.
+This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`: the slim web-front edition (CSV lab API, static harness, site integration, lab infrastructure). The engine, rules, CLI and UI components live upstream in `saulpatinojr/HCW-AzMigrateOrchestrator_App` and arrive here as `@hybridcloudworks/migration-core` / `@hybridcloudworks/migration-ui`, the tarballs attached to the upstream GitHub Release of the `v*` tag pinned in `package.json` (URL + integrity hash in the lock; ADR-0028, ADR-0030). Build is `npm ci`.

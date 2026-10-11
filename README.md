@@ -64,20 +64,22 @@ lives in the lab host's vault (`vault_addon_migration_turnstile_secret`), never 
 
 ## Quick start
 
-Requires Node 26. Until the packages are on npm, the upstream product is a sibling checkout at the pinned release:
+Requires Node 26. The two upstream packages are the tarballs attached to the upstream GitHub Release of the pinned
+`v*` tag (`package.json` names them by URL; `package-lock.json` carries their integrity hash), so `npm ci` is the whole
+setup:
 
 ```bash
-npm run app:bootstrap        # clones ../HCW-AzMigrateOrchestrator_App at APP_REF, builds it and assembles its packages
 npm ci && npm test           # API, contract, boundary, manifest and no-secrets tests
 npm run build                # API (tsc) + pane (vite → apps/lab-web/dist)
 AMO_ALLOW_NO_TURNSTILE=1 npm run lab:api   # http://127.0.0.1:8080 — the pane and its API, no verification locally
 npm run e2e                  # Playwright: the pane through a host page with the site's sandbox, siteverify mocked
 ```
 
-PowerShell: `bash scripts/bootstrap-app.sh; npm ci; npm test; npm run build; $env:AMO_ALLOW_NO_TURNSTILE="1"; npm run lab:api`
+PowerShell: `npm ci; npm test; npm run build; $env:AMO_ALLOW_NO_TURNSTILE="1"; npm run lab:api`
 
-Container image, built from the **parent** directory holding both checkouts:
-`docker build -f HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab .` (see `docker-compose.yml`).
+Container image, built from this repository's root: `docker build -f infrastructure/docker/Dockerfile.lab .` (see
+`docker-compose.yml`). A new upstream release is adopted by `core-update.yml`, which bumps both tarball URLs, re-locks,
+tests this edition against it and opens the pull request.
 
 ## Repository map
 
@@ -91,8 +93,8 @@ Container image, built from the **parent** directory holding both checkouts:
 
 ## Releases and artifacts
 
-`APP_REF` in `.github/workflows` is the upstream release this edition is built against; it changes only through a reviewed
-pull request, normally the one `core-update` opens. A `v*` tag here publishes the lab image to
+The upstream release this edition is built against is the `v*` tag in the two tarball URLs of `package.json`; it changes
+only through a reviewed pull request, normally the one `core-update` opens (both URLs and the lock move together). A `v*` tag here publishes the lab image to
 `docker.io/hybridcloudworks/hcw-addon-migration` after a vulnerability scan, with provenance and SBOM, through the Docker OIDC
 connection (no registry secrets); the website pins the digest the run prints. `X-Addon-Version` and `/api/health.version`
 report the version released. Tags `v0.1.0`–`v0.1.3` predate the flip to this edition and are historical.

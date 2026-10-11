@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { reportPaneState, requestNavigate, setSiteOrigins } from "./pane.js";
 import { TurnstileWidget } from "./turnstile.js";
 
@@ -57,13 +57,6 @@ export function PaneApp() {
     try { return await fetch(input, init); } finally { if (working) reportPaneState("ready"); }
   }, []);
 
-  // Interim until the UI package's `onNavigate` prop (APP_REF v0.3.0): the enterprise CTA is an in-frame link the site would
-  // block, so the click is turned into a `navigate` request to the host instead.
-  const onClickCapture = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    const a = (e.target as HTMLElement).closest?.(`a[href="${CONTACT_PATH}"]`);
-    if (a) { e.preventDefault(); requestNavigate(CONTACT_PATH); }
-  }, []);
-
   if (unavailable) {
     return (
       <main className="mx-auto max-w-3xl p-6" role="status">
@@ -79,12 +72,14 @@ export function PaneApp() {
     );
   }
   return (
-    <main className="mx-auto max-w-5xl p-4 sm:p-6" data-addon="migration" data-addon-version={health.version} onClickCapture={onClickCapture}>
+    <main className="mx-auto max-w-5xl p-4 sm:p-6" data-addon="migration" data-addon-version={health.version}>
       <p className="mb-4 text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">Azure migration assessment · not production</p>
       <Suspense fallback={<p role="status" aria-live="polite" className="text-sm text-[hsl(var(--muted-foreground))]">Loading the assessment…</p>}>
         <MigrationExplorer
           apiBaseUrl=""
-          contactUrl={CONTACT_PATH}
+          partners={false}
+          contactPath={CONTACT_PATH}
+          onNavigate={requestNavigate}
           fetchImpl={fetchImpl}
           turnstile={widget.current ? <TurnstileSlot widget={widget.current} /> : undefined}
           getTurnstileToken={widget.current ? widget.current.getToken : undefined}

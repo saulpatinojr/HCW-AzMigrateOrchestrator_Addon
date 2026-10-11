@@ -42,6 +42,11 @@ layout was flipped at zero migration cost.
    repository variable `NPM_TRUSTED_PUBLISHING=ready`, set by the owner after the one-time registry bootstrap in
    `docs/release/npm-publishing.md`. Image publication scans before pushing (ADR-0027 release fixes carried over).
 
+> Amended 2026-10-11 (upstream ADR-0030): consequence 4's interim contract is retired. `_Addon` pins the two package tarballs
+> attached to `_App`'s GitHub Release of the chosen `v*` tag by URL, with their integrity hash in `package-lock.json`;
+> `core-update.yml` bumps the tag and re-locks. No sibling checkout, no `APP_REF`, no registry on the path. The Cloud
+> Assessor and NetworkEyes pairs use the same method (a release wheel pinned by URL and sha256).
+
 ## Consequences
 
 - The appliance is freestanding: `npm ci && npm test` in `_App` needs nothing else. The addon is freestanding in deployment

@@ -33,14 +33,13 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
 - **Not executed locally (CI only):** `docker build` of `Dockerfile.lab` and the Trivy scan (no daemon); `publish-images.yml`
   against Docker Hub (the OIDC connection and the `DOCKERHUB_*` variables are owner steps); the website's `addons` role,
   Caddy route and status proxy (Phase 6, website repository); verification against the real siteverify endpoint.
-- **Interim until `APP_REF` reaches upstream v0.3.0** (`MigrationExplorer` gains `partners`, `cta`, `onStageChange`,
-  `onNavigate`, `apiBaseUrl` default `""`): the pane hides the explorer's partner panel with CSS (`[aria-label="Powered by"]`),
-  turns the in-frame `/contact` CTA link into a `navigate` request with a capture-phase click handler, derives `working`/`ready`
-  from a `fetchImpl` wrapper around the explorer's POSTs rather than from stage changes, and bypasses `window.confirm` when
+- **Adopted with upstream v0.3.0** (2026-10-11): `partners={false}` replaces the CSS rule that hid the partner panel and
+  `contactPath` + `onNavigate` replace the capture-phase click handler that turned the in-frame `/contact` link into a
+  `navigate` request. **Still shims:** the pane derives `working`/`ready` from a `fetchImpl` wrapper around the explorer's
+  POSTs rather than from `onStageChange` (one signal, already covered by e2e), and bypasses `window.confirm` when
   framed: the site's sandbox has no `allow-modals`, so the browser ignores the explorer's `confirm()` (`Ignored call to
   'confirm()'. The document is sandboxed, and the 'allow-modals' keyword is not set.`, observed in e2e) and "Delete my data
-  now" would otherwise do nothing. The UI package should confirm deletion without a modal; `partners={false}`,
-  `onNavigate` and `onStageChange` replace the first three shims at adoption.
+  now" would otherwise do nothing. The UI package should confirm deletion without a modal.
 - **Known limitation:** `unavailable` cannot be posted when health itself fails, because the site origins come from health;
   the site's 30-second watchdog shows its own sentence, and the pane shows the same sentence in-frame.
 
@@ -57,8 +56,10 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
 
 ## Standing limitations
 
-- Interim dependency contract: a stale sibling upstream build silently yields stale types and runtime. Run `npm run app:bootstrap`
-  after any `APP_REF` change. Removed once the packages are installed from npm.
+- Dependency contract (ADR-0030, 2026-10-11): the upstream packages are release tarballs pinned by URL and integrity hash.
+  The pin and the lock move together through `core-update.yml`; a hand-edited URL without a re-lock fails `npm ci` on
+  purpose. First adoption is `v0.3.0`: this edition's checks run against the local `npm pack` output of the upstream
+  `main` until the tag exists, and the lock's integrity entries are recorded once the release assets are published.
 - `core-update` pull requests are opened with `GITHUB_TOKEN`, so they do not trigger the `ci` workflow themselves; the
   compatibility evidence is the `core-update` run linked in the PR body.
 - Playwright e2e ran locally on 2026-10-10 (Chromium downloaded) and on GitHub-hosted runners; earlier sandboxes blocked the download.

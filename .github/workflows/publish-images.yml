@@ -1,6 +1,6 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
 # AddOn image docker.io/hybridcloudworks/hcw-addon-migration (program decision 2026-10-09: Docker Hub only, no GHCR).
-# Build context is the workspace root holding both checkouts (ADR-0028 interim contract).
+# Build context is this repository alone: the upstream packages are release tarballs npm ci fetches by URL and verifies by hash.
 # Order matters: build locally -> scan -> push. A failing scan publishes nothing. The website pins the digest this run prints
 # in lab-host/ansible/group_vars/all.yml (addons[].image_digest); tags are for humans.
 #
@@ -16,7 +16,6 @@ on:
 permissions:
   contents: read
 env:
-  APP_REF: v0.2.1
   IMAGE: docker.io/hybridcloudworks/hcw-addon-migration
   DOCKERHUB_ORG: hybridcloudworks
 jobs:
@@ -40,14 +39,10 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with: { path: HCW-AzMigrateOrchestrator_Addon }
-      - name: Check out the upstream product at the pinned release
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with: { repository: saulpatinojr/HCW-AzMigrateOrchestrator_App, ref: "${{ env.APP_REF }}", path: HCW-AzMigrateOrchestrator_App }
       - uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
       - id: version
         name: Image version from the AddOn package
-        run: echo "version=$(node -p "require('./HCW-AzMigrateOrchestrator_Addon/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
@@ -59,7 +54,7 @@ jobs:
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
-          file: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab
+          file: infrastructure/docker/Dockerfile.lab
           build-args: ADDON_VERSION=${{ steps.version.outputs.version }}
           load: true
           push: false
@@ -82,7 +77,7 @@ jobs:
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
-          file: HCW-AzMigrateOrchestrator_Addon/infrastructure/docker/Dockerfile.lab
+          file: infrastructure/docker/Dockerfile.lab
           build-args: ADDON_VERSION=${{ steps.version.outputs.version }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
