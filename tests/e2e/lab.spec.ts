@@ -19,7 +19,7 @@ async function uploadAndRun(scope: Scope) {
   await expect(scope.getByText("never connects to an Azure tenant")).toBeVisible();
   await scope.locator('input[type="file"]').setInputFiles(sample);
   await expect(scope.getByText(/29 data rows/)).toBeVisible();
-  await scope.getByLabel("Destination region").fill("westus3");
+  await scope.getByLabel("Destination region").selectOption("westus3");
   await scope.getByRole("button", { name: "Run assessment" }).click();
   await expect(scope.getByRole("heading", { name: "4. Summary" })).toBeVisible({ timeout: 30_000 });
 }
