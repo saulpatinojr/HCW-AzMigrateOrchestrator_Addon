@@ -20,7 +20,7 @@ Never blur the permissions or evidence of one role into the other.
 
 Collect the PR title/body, base and head SHA, full diff, changed/deleted/renamed files, repository instructions, relevant Skills, required checks, review threads, approvals, and available evidence. Identify the code creator when visible: human, GitHub Copilot, Anthropic Claude, OpenAI Codex, or another coding partner.
 
-For every review, read `references/general-review-gates.md`. For the HybridCloudWorks repository profile, read `references/repository-profile.md` (HybridCloudWorks site) or `references/azure-migration-orchestrator-profile.md` (this repository: look for `rules/azure` and `packages/classification-engine`)` and only the component references it routes to. Do not load unrelated component files.
+For every review, read `references/general-review-gates.md` and `references/azure-migration-orchestrator-profile.md`.
 
 ## 3. Review the changed behavior
 
@@ -88,16 +88,7 @@ Return:
 
 - `references/general-review-gates.md`: technology-neutral correctness, security, quality, test, and operations gates.
 - `references/severity-and-output.md`: finding threshold, severity, confidence, and output discipline.
-- `references/repository-profile.md`: repository-specific routing and cross-cutting rules.
-- `references/functions.md`: Azure Functions checks.
-- `references/frontend.md`: frontend checks.
-- `references/infra.md`: Terraform/live-infrastructure checks.
+- `references/azure-migration-orchestrator-profile.md`: repository-specific routing and cross-cutting rules for this AddOn.
 - `references/scripts-workflows.md`: scripts and GitHub Actions checks.
-- `references/agents-edge.md`: VPS agent and Cloudflare edge checks.
 - `references/github-platform.md`: GitHub Copilot platform behavior and limitations.
 - `references/mcp-boundaries.md`: MCP evidence and read-only boundaries.
-
-
-## Repository selection
-
-Read `references/azure-migration-orchestrator-profile.md` when the repository contains `rules/azure/` and `packages/classification-engine/`; read `references/repository-profile.md` only for the HybridCloudWorks site layout.

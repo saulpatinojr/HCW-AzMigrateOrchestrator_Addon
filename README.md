@@ -94,8 +94,8 @@ tests this edition against it and opens the pull request.
 | `apps/lab-api` | The CSV lab API: in-memory assessments with owner tokens and TTL, human verification (fail closed), per-client rate limit and concurrency cap, framing headers, the AddOn health envelope, serves the built pane |
 | `apps/lab-web` | The pane app the site frames: `@hybridcloudworks/migration-ui` against the same origin, the verification widget, the `hcw-addon` pane protocol |
 | `tests/e2e` · `tests/security` · `tests/contract` | Browser journey through the pane and through a sandboxed host page (exact message sequence, headers, 403 without a token, no password fields, no partner names); edition boundary; two-way OpenAPI ↔ routes |
-| [`infrastructure/`](infrastructure/README.md) | Lab Dockerfile (two-tree build, pane included), Coder template and workspace image, monitoring notes; retired Terraform |
-| [`docs/`](docs/README.md) | Website integration (pane model), lab-host deployment and operations, demo user guide, threat model, OpenAPI, partner one-pagers |
+| [`infrastructure/`](infrastructure/README.md) | Lab Dockerfile (pane included), Coder template (`amo-guided-lab` on `hcw-lab`), monitoring notes |
+| [`docs/`](docs/README.md) | Website integration (pane model), lab-host deployment and operations, demo user guide, threat model, OpenAPI, ADRs |
 
 ## Releases and artifacts
 
