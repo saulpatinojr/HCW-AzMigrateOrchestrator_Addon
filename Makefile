@@ -1,5 +1,4 @@
-.PHONY: app install build test e2e lab package clean
-app: ; bash scripts/bootstrap-app.sh
+.PHONY: install build test e2e lab package clean
 install: ; npm ci
 build: ; npm run build
 test: ; npm test

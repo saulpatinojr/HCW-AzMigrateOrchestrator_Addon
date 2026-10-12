@@ -32,5 +32,5 @@ test("env mapping: lists, flags and the static-dir default", () => {
   assert.equal(o.turnstileSecret, undefined, "an empty secret is no secret");
   assert.equal(o.turnstileSiteKey, "1x00000000000000000000AA");
   assert.equal(o.allowNoTurnstile, false);
-  assert.ok(o.staticDir?.endsWith("/apps/lab-web/dist"));
+  assert.ok(o.staticDir?.replace(/\\/g, "/").endsWith("/apps/lab-web/dist"));
 });

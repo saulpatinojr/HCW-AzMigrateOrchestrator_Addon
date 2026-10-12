@@ -1,29 +1,21 @@
-# Azure Migration Orchestrator repository profile
+# Azure Migration Orchestrator AddOn repository profile
 
-Use this profile when the repository contains `packages/classification-engine` and `rules/azure`. The
-HybridCloudWorks site profile (`repository-profile.md`) does **not** apply here; it is retained for the
-sister repository and as the pack's reference implementation.
+Use this profile for `saulpatinojr/HCW-AzMigrateOrchestrator_Addon` (the downstream web-front edition, ADR-0028, ADR-0030). The engine, rules, CLI, UI components, and enterprise appliance live upstream in `saulpatinojr/HCW-AzMigrateOrchestrator_App`.
 
 ## Component routing
 
 | Touched path | Component | Review focus |
 | --- | --- | --- |
-| `rules/**` | Versioned support rules (data) | Every rule has Microsoft Learn sources with `retrievedOn`; no `unsupported` without alternatives; ASR never a default migration tool; `npm run rules:validate` passes and `rules/snapshots/current.json` was regenerated (`amo rules snapshot`) with a change report in the PR body. |
-| `packages/domain/**` | Shared types and taxonomy | Changing an enum changes the rule schema and golden files — all three must move together. |
-| `packages/csv-ingestion/**` | Untrusted input boundary | Formula neutralisation, size/row limits, no raw-row logging, provenance for every field. |
-| `packages/classification-engine/**` | Decision engine | Confidence never exceeds evidence (unauthenticated cap), unknowns stay unknown, infrastructure/identity/configuration/data stay separate dimensions. Golden test updated deliberately, never bent to fit. |
-| `packages/agents/**` | Orchestrator and Safety Agent | Safety checks may only be strengthened; demo refuses authenticated providers. |
-| `packages/terraform-generator/**`, `packages/runbook-generator/**` | Generated artifacts | No secret literals, dry-run default, "not production" labels intact. |
-| `apps/lab-api/**`, `apps/lab-web/**` | Public demo surface | Owner-token isolation, TTL, no execution routes, security headers, no credentials requested. |
-| `apps/appliance-api/**` | Enterprise edition | Fails closed without sign-in; refuses client secrets in env. |
-| `infrastructure/**` | Terraform, Docker, Coder, proxy | No privileged containers, no Docker socket exposure, no secrets in tfvars. |
-| `.github/**` | Governance | Also apply `review-copilot-customization`. |
+| `apps/lab-api/**`, `apps/lab-web/**` | Public demo surface & pane | Owner-token isolation, TTL, no execution routes, security headers, fail-closed human verification, pane protocol (`hcw-addon`), no credentials requested, no vendor names in the pane. |
+| `infrastructure/**` | Docker, Coder (`amo-guided-lab`) | No privileged containers, no Docker socket exposure (`tcp://coder-docker-proxy:2375` only), digest-pinned images, `drop = ["ALL"]`, `no-new-privileges:true`, no secrets in tfvars. |
+| `tests/**` | E2E, contract, security, manifest | Two-way OpenAPI parity (`tests/contract`), edition boundary (`tests/security/edition-boundary.test.mjs`), version alignment (`tests/version-alignment.test.mjs`). |
+| `.github/**` | Governance & CI/CD | SHA-pinned actions, least-privilege permissions; also apply `review-copilot-customization`. |
 
 ## Verification commands
 
 ```bash
-npm ci && npm test            # build + 50+ unit/integration/golden/security tests
-npm run rules:validate        # rule corpus + snapshot checksum
+npm ci && npm test            # API, contract, boundary, manifest, version-alignment, and no-secrets tests
+npm run e2e                   # Playwright browser suite
 ```
 
 Terraform under `infrastructure/coder/template` is validated by `iac-validate.yml` (`fmt -check`, `init -backend=false`, `validate`). If terraform is unavailable locally, report it as skipped — CI covers it.

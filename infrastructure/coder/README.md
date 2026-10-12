@@ -1,12 +1,7 @@
-# Coder browser lab
+# Coder guided lab (`amo-guided-lab`)
 
-`template/` is a Coder template that starts a per-user Docker workspace, downloads one assessment bundle from the
-demo API with a one-time owner token, and opens VS Code (code-server) on it. The engine talks to Coder only
-through `@amo/workspace-provider` (ADR-0010).
+`template/main.tf` is a Coder template that provisions a per-user, isolated Docker workspace on the shared, digest-pinned `docker.io/hybridcloudworks/hcw-lab` image through `tcp://coder-docker-proxy:2375` (ADR-0032 / LAB-5 boundary), downloads one assessment bundle from the lab API with a single-use `x-bundle-token` via `/usr/local/libexec/hcw-boot/hcw-boot migration-assessment` (with an inline `python3 -m zipfile -e` fallback), and opens `code-server` on `/tmp/home/assessment`.
 
-Required variables: `demo_api_base_url`. Template parameters: `assessment_id`, `bundle_token` (ephemeral).
+Required template variables: `demo_api_base_url`. Ephemeral workspace parameters: `assessment_id`, `bundle_token`.
 
-Deployment checklist (docs/deployment/coder.md): Coder behind the same Caddy as the demo (`coder.<domain>`), GitHub
-OAuth for sign-in, workspace TTL ≤ 4 h with idle shutdown, quota 1 workspace/user, image built from
-`ghcr.io/saulpatinojr/amo-lab-workspace` (code-server, terraform, PowerShell, Azure CLI — **no credentials**).
-Not validated against a live Coder deployment in this build (VALIDATION.md).
+See [`docs/deployment/coder.md`](../../docs/deployment/coder.md) for deployment and verification steps.

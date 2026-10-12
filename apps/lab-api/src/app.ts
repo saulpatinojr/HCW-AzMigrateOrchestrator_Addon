@@ -289,7 +289,7 @@ function readBody(req: IncomingMessage, limit: number): Promise<Buffer | null> {
 
 function serveStatic(dir: string | undefined, pathname: string, res: ServerResponse, headers: () => Record<string, string>): void {
   if (!dir) { res.writeHead(404, headers()); return void res.end("not found"); }
-  const safe = normalize(pathname).replace(/^(\.\.[/\\])+/, "");
+  const safe = normalize(pathname).replace(/^(\.\.[/\\])+/, "").replace(/\\/g, "/");
   let file = join(dir, safe === "/" ? "index.html" : safe);
   if (!file.startsWith(dir)) { res.writeHead(403, headers()); return void res.end("forbidden"); }
   if (!existsSync(file) || statSync(file).isDirectory()) file = join(dir, "index.html");

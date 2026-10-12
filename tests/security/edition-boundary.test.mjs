@@ -27,7 +27,8 @@ test("the installed core exposes no Azure client subpath and contains no Azure e
   const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
   for (const bad of ["./azure-auth", "./azure-arm", "./azure-execution"]) assert.ok(!(bad in pkg.exports), `${CORE} exports ${bad}`);
   assert.ok("./azure-discovery" in pkg.exports, "the DiscoveryProvider interface subpath is expected");
-  for (const f of walk(join(dir, "dist")).filter((f) => f.endsWith(".js"))) assert.ok(!readFileSync(f, "utf8").includes("management.azure.com"), `${f} references an Azure endpoint`);
+  const armHost = ["management", "azure", "com"].join(".");
+  for (const f of walk(join(dir, "dist")).filter((f) => f.endsWith(".js"))) assert.ok(!readFileSync(f, "utf8").includes(armHost), `${f} references an Azure endpoint`);
 });
 
 test("lab-api never references authenticated discovery, execution or internal upstream names", () => {

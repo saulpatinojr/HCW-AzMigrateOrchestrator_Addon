@@ -3,8 +3,7 @@
 This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`: the downstream web-front edition (CSV lab API, the pane app
 `apps/lab-web` the website frames at `/tools/migration`, e2e, lab image, site integration). Keep the pane protocol and the
 `/api/health` envelope described in `docs/website-integration/integration-guide.md`. The engine, rules, CLI and UI components are **not in this tree**; they come from
-`saulpatinojr/HCW-AzMigrateOrchestrator_App` checked out as a sibling at the release pinned in `.github/workflows/*.yml`
-(release tarballs pinned by URL and integrity hash; ADR-0028, ADR-0030).
+`saulpatinojr/HCW-AzMigrateOrchestrator_App` as release tarballs pinned by URL in `package.json` and integrity hash in `package-lock.json` (ADR-0028, ADR-0030).
 
 Build/test: `npm ci && npm test` (the upstream packages are release tarballs pinned by URL and integrity hash);
 browser suite: `npm run e2e`. Conventions and invariants: `CLAUDE.md`. Review expectations: `.github/copilot-instructions.md`.

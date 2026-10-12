@@ -2,8 +2,8 @@
 
 | Path | What | Status |
 |---|---|---|
-| `docker/Dockerfile.lab` | AddOn image on `node:26-bookworm-slim` (pinned by digest), built from the parent directory holding both checkouts: upstream packages packed into `node_modules`, the API (`tsc`) and the pane (`vite`) built before devDependencies are pruned, Debian security upgrades, npm removed, non-root, health check, OCI labels. Published to `docker.io/hybridcloudworks/hcw-addon-migration` by `publish-images.yml` after a Trivy scan, with provenance and SBOM, through the Docker OIDC connection | Supported build; the website pins the digest |
-| `coder/template/` · `coder/image/` | Coder guided-lab workspace template and tooling image (no credentials, no cloud access) | Validates in CI (`iac-validate`); Coder integration is disabled for the initial deployment; image published manually (`publish-workspace-image.yml`) |
+| `docker/Dockerfile.lab` | AddOn image on `node:26-bookworm-slim` (pinned by digest), built from this repository's root (`npm ci` fetches the pinned upstream release tarballs by URL and verifies their integrity hash in `package-lock.json`), the API (`tsc`) and the pane (`vite`) built before devDependencies are pruned, Debian security upgrades, npm removed, non-root, health check, OCI labels. Published to `docker.io/hybridcloudworks/hcw-addon-migration` by `publish-images.yml` after a Trivy scan, with provenance and SBOM, through the Docker OIDC connection | Supported build; the website pins the digest |
+| `coder/template/` | Coder guided-lab workspace template (`amo-guided-lab`) running on the shared digest-pinned `docker.io/hybridcloudworks/hcw-lab` image via `tcp://coder-docker-proxy:2375` (`ADR-0032`, no credentials, no cloud access) | Validated in CI (`iac-validate`); pushed by `coder-template.yml` when `CODER_TEMPLATE_ENABLED=true` |
 | `monitoring/README.md` | Logging, health and alerting notes | Notes only |
 
 The deployment is the website repository's: its `lab-host/ansible/roles/addons` role runs this image as the container
