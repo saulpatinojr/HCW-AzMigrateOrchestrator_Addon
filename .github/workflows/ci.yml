@@ -1,6 +1,6 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
 # The two upstream packages are the tarballs attached to the GitHub Release of the pinned v* tag of
-# saulpatinojr/HCW-AzMigrateOrchestrator_App (package.json pins them by URL; package-lock.json carries their integrity hash).
+# saulpatinojr/HCW-MigrateOrchestrator_App (package.json pins them by URL; package-lock.json carries their integrity hash).
 # core-update.yml bumps the tag when a new upstream release passes these same checks. No upstream checkout is needed.
 name: ci
 on:
