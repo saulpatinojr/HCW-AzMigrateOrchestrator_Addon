@@ -58,8 +58,9 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
 
 - Dependency contract (ADR-0030, 2026-10-11): the upstream packages are release tarballs pinned by URL and integrity hash.
   The pin and the lock move together through `core-update.yml`; a hand-edited URL without a re-lock fails `npm ci` on
-  purpose. First adoption is `v0.3.0`: this edition's checks run against the local `npm pack` output of the upstream
-  `main` until the tag exists, and the lock's integrity entries are recorded once the release assets are published.
+  purpose. The pin moved `v0.3.0` to `v0.3.1`; both tags and their release assets exist and the lock carries the integrity
+  entries. On 2026-10-24 the two `v0.3.1` tarballs were downloaded and their SHA-512 values equal the lock's entries (see
+  `docs/whats-new-upstream.md`, which also lists what upstream changed since).
 - `core-update` pull requests are opened with `GITHUB_TOKEN`, so they do not trigger the `ci` workflow themselves; the
   compatibility evidence is the `core-update` run linked in the PR body.
 - Playwright e2e ran locally on 2026-10-10 (Chromium downloaded) and on GitHub-hosted runners; earlier sandboxes blocked the download.

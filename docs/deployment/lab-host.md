@@ -71,7 +71,7 @@ gh variable set DOCKERHUB_ENABLED --repo saulpatinojr/HCW-AzMigrateOrchestrator_
 The first line reads the connection's UUID from the clipboard. Until both are set, `publish-images.yml` skips and the
 website catalogue row stays `coming`.
 
-**3. Release.** Tag `v0.3.0` here; the run summary of `publish-images` prints
+**3. Release.** Tag the release here (the current one is `v0.3.1`); the run summary of `publish-images` prints
 `docker.io/hybridcloudworks/hcw-addon-migration@sha256:…`. Put that digest and the tag in the website's `group_vars/all.yml`
 and apply the host from the website repository as its README describes (PowerShell):
 

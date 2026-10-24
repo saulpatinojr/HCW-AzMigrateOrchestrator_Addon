@@ -13,5 +13,6 @@ documentation and the canonical ADR log live upstream in
 | [`operations/runbook.md`](operations/runbook.md) | Health over SSH, `docker logs hcw-addon-migration`, restart/upgrade/rollback, kill switches, abuse bounds |
 | [`security/threat-model.md`](security/threat-model.md) | Assets, threats and controls (in-memory inventories, owner tokens, TTL, framing and sandbox, fail-closed verification, rate limit and concurrency, trust-proxy, no execution surface) |
 | [`demo/user-guide.md`](demo/user-guide.md) · [`demo/output-bundle.md`](demo/output-bundle.md) | What a user does in the explorer and what the output bundle contains |
+| [`whats-new-upstream.md`](whats-new-upstream.md) | What changed upstream, whether it reaches this edition, and what to run: read it before bumping the upstream pin |
 | [`adr/`](adr/) | Copies of the upstream decisions that shape this edition (ADR-0028, ADR-0030, the pane model) |
 | [`../VALIDATION.md`](../VALIDATION.md) | What was executed and what was not; limitations |
