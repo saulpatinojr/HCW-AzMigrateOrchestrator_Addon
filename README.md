@@ -8,7 +8,7 @@
 [![live](https://img.shields.io/website?url=https%3A%2F%2Fmigration.lab.hybridcloudworks.com%2Fapi%2Fhealth&label=live%20at%20%2Ftools%2Fmigration&up_message=yes&down_message=down)](https://hybridcloudworks.com/tools/migration)
 [![upstream](https://img.shields.io/badge/upstream-HCW--MigrateOrchestrator__App%20v0.3.1-6f42c1?logo=github)](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/releases/tag/v0.3.1)
 [![node](https://img.shields.io/badge/node-%3E%3D26-339933?logo=node.js&logoColor=white)](docs/adr/ADR-0029-node-26-runtime-floor.md)
-[![docker hub](https://img.shields.io/badge/docker.io-hybridcloudworks%2Fhcw--addon--migration-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hybridcloudworks/hcw-addon-migration)
+[![docker hub](https://img.shields.io/badge/docker.io-hybridcloudworks%2Fhcw--migrateorchestrator-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hybridcloudworks/hcw-migrateorchestrator)
 [![license](https://img.shields.io/github/license/saulpatinojr/HCW-AzMigrateOrchestrator_Addon)](LICENSE)
 
 Upload the `resources.csv` exported from the Azure portal and see how every resource would move — with evidence, confidence,
@@ -34,7 +34,7 @@ flowchart LR
   subgraph Addon["HCW-AzMigrateOrchestrator_Addon (this repository)"]
     L[CSV lab API<br/>apps/lab-api]
     P[Pane app<br/>apps/lab-web]
-    I[Lab image<br/>docker.io/hybridcloudworks/hcw-addon-migration]
+    I[Lab image<br/>docker.io/hybridcloudworks/hcw-migrateorchestrator]
   end
   W["hybridcloudworks.com<br/>/tools/migration (pane)"]
   H[Lab host<br/>website repo's addons role · Caddy]
@@ -101,7 +101,7 @@ tests this edition against it and opens the pull request.
 
 The upstream release this edition is built against is the `v*` tag in the two tarball URLs of `package.json`; it changes
 only through a reviewed pull request, normally the one `core-update` opens (both URLs and the lock move together). A `v*` tag here publishes the lab image to
-`docker.io/hybridcloudworks/hcw-addon-migration` after a vulnerability scan, with provenance and SBOM, through the Docker OIDC
+`docker.io/hybridcloudworks/hcw-migrateorchestrator` after a vulnerability scan, with provenance and SBOM, through the Docker OIDC
 connection (no registry secrets); the website pins the digest the run prints. `X-Addon-Version` and `/api/health.version`
 report the version released. Tags `v0.1.0`–`v0.1.3` predate the flip to this edition and are historical.
 

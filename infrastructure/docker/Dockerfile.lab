@@ -18,7 +18,7 @@ RUN npm ci --no-audit --no-fund && npm run build && npm prune --omit=dev
 
 FROM ${NODE_IMAGE}
 ARG ADDON_VERSION=0.3.0
-LABEL org.opencontainers.image.title="hcw-addon-migration" \
+LABEL org.opencontainers.image.title="hcw-migrateorchestrator" \
       org.opencontainers.image.description="Hybrid Cloud Works migration assessment AddOn: lab API and pane. No Azure clients, no credentials." \
       org.opencontainers.image.source="https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon" \
       org.opencontainers.image.version="${ADDON_VERSION}" \

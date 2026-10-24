@@ -1,5 +1,5 @@
 # Actions are pinned to full commit SHAs (version in the trailing comment); Dependabot (github-actions ecosystem) proposes updates.
-# AddOn image docker.io/hybridcloudworks/hcw-addon-migration (program decision 2026-10-09: Docker Hub only, no GHCR).
+# AddOn image docker.io/hybridcloudworks/hcw-migrateorchestrator (program decision 2026-10-09: Docker Hub only, no GHCR).
 # Build context is this repository alone: the upstream packages are release tarballs npm ci fetches by URL and verifies by hash.
 # Order matters: build locally -> scan -> push. A failing scan publishes nothing. The website pins the digest this run prints
 # in lab-host/ansible/group_vars/all.yml (addons[].image_digest); tags are for humans.
@@ -16,7 +16,7 @@ on:
 permissions:
   contents: read
 env:
-  IMAGE: docker.io/hybridcloudworks/hcw-addon-migration
+  IMAGE: docker.io/hybridcloudworks/hcw-migrateorchestrator
   DOCKERHUB_ORG: hybridcloudworks
 jobs:
   build-scan-publish:
