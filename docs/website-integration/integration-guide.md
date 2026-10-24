@@ -1,7 +1,7 @@
 # Integrating the migration AddOn into hybridcloudworks.com
 
 The site frames this AddOn as a **sandboxed pane** at `/tools/migration` (HCW AddOn Integration Standard; upstream ADR-0030,
-pending). Nothing from this repository is installed into the site: the site holds one catalogue row, one status read and
+[`docs/adr/ADR-0030-web-front-edition-runs-as-a-site-pane.md`](../adr/ADR-0030-web-front-edition-runs-as-a-site-pane.md)). Nothing from this repository is installed into the site: the site holds one catalogue row, one status read and
 one iframe. The AddOn serves its own pane app (`apps/lab-web`, built into `dist/`) and its API from one origin,
 `https://migration.lab.hybridcloudworks.com`, hosted by the website repository's `addons` Ansible role on the lab host
 (`docs/deployment/lab-host.md`).

@@ -9,6 +9,9 @@ and `@hybridcloudworks/migration-ui`. Nothing here may reach Azure; `tests/secur
   Release of one `v*` tag, by URL; `package-lock.json` carries their integrity hash and `npm ci` verifies it. No sibling
   checkout, no registry. `core-update.yml` bumps both URLs and re-locks when a newer release exists; never edit the URLs
   by hand to `main` or to two different tags.
+- **Read `docs/whats-new-upstream.md` before changing behaviour or bumping the upstream pin** (what changed upstream, whether
+  it reaches this edition, what to run). Add an entry to it whenever an upstream change reaches this edition, including
+  every `core-update` pull request you merge, and keep its "Current upstream state" table true.
 - Do not change engine behaviour, rules or UI components here: change them upstream, release, and let `core-update` bring the
   release down. Only this edition's own code (lab API, harness, e2e, infra, docs) is edited here.
 - Run `npm ci` then `npm test` and, for anything touching the
