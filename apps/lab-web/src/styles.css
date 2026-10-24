@@ -3,8 +3,8 @@
 
 /*
  * HCW theme tokens, copied from HCW-HybridCloudWorks/frontend/src/index.css (`:root` and `.dark` under `@layer base`,
- * read 2026-10-10) so the pane matches the site that frames it. The site switches with a `.dark` class; the pane has no
- * site state, so it follows `prefers-color-scheme`, which is also what Tailwind's `dark:` variant keys on here.
+ * read 2026-10-10) so the pane matches the site that frames it. The site switches with a `.dark` class and tells the pane
+ * its theme once, as `?theme=dark|light` on the frame address (theme.ts); without it the pane follows `prefers-color-scheme`.
  * Fonts: the site's display faces (Goldman, Turret Road) are self-hosted there and not loaded here (CSP `font-src` is
  * `default-src 'self'`); the names stay first in the stacks so a visitor with them installed sees the same faces.
  */
@@ -35,6 +35,35 @@
     --border: 240 6% 15%;
     --ring: 240 6% 18%;
   }
+}
+/*
+ * `?theme=dark|light` (set on the document as `data-theme` before the first render, so there is no flash) wins over the
+ * device setting. The dark values repeat the media query above because CSS cannot share a declaration block between a
+ * media query and an attribute selector; change both together (tests/contract/theme-parameter.test.mjs checks they match).
+ */
+:root[data-theme="dark"] {
+  --background: 240 9% 4%;
+  --foreground: 0 0% 100%;
+  --card: 240 6% 7%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 222 20% 12%;
+  --muted: 240 6% 11%;
+  --muted-foreground: 215 16% 80%;
+  --border: 240 6% 15%;
+  --ring: 240 6% 18%;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --background: 0 0% 100%;
+  --foreground: 222 20% 12%;
+  --card: 0 0% 100%;
+  --primary: 222 20% 12%;
+  --primary-foreground: 0 0% 100%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 220 12% 38%;
+  --border: 220 14% 95%;
+  --ring: 222 20% 18%;
+  color-scheme: light;
 }
 
 @theme inline {
