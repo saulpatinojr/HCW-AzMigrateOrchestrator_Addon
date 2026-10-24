@@ -13,7 +13,7 @@ edition (the upstream `CLAUDE.md` asks for the same), newest first, and keep the
 
 | Question | Answer |
 |---|---|
-| Upstream `main` | `570881e` (merge of upstream pull request #61). The documentation pull request #62 is the only open one |
+| Upstream `main` | `555ed51` (merge of upstream pull request #67). The documentation pull request #62 is merged; the open one that matters here is #68, the rename |
 | Latest upstream release | `v0.3.1`, published 2026-10-11, tag commit `b7db4c8` (annotated tag) |
 | What this edition pins | `v0.3.1`: `migration-core` and `migration-ui` as release tarballs, by URL in `package.json` and by integrity hash in `package-lock.json` |
 | Drift between pin and latest release | None |
