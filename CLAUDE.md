@@ -2,7 +2,7 @@
 
 This is `saulpatinojr/HCW-AzMigrateOrchestrator_Addon`, the **downstream web-front edition** (ADR-0028): the CSV lab API, the
 pane app the website frames (`apps/lab-web`), the browser e2e suite, the lab image and the website-integration docs. The engine, rules, CLI and UI
-components live upstream in `saulpatinojr/HCW-AzMigrateOrchestrator_App` and arrive here as `@hybridcloudworks/migration-core`
+components live upstream in `saulpatinojr/HCW-MigrateOrchestrator_App` and arrive here as `@hybridcloudworks/migration-core`
 and `@hybridcloudworks/migration-ui`. Nothing here may reach Azure; `tests/security/edition-boundary.test.mjs` enforces it.
 
 - Dependency contract (ADR-0030): `package.json` pins both packages as the tarballs attached to the upstream GitHub

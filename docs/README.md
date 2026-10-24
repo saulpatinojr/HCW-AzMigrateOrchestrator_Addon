@@ -2,7 +2,7 @@
 
 This repository documents the web-front edition only. The working plan, requirement ledger, architecture overview, rule
 documentation and the canonical ADR log live upstream in
-[`HCW-AzMigrateOrchestrator_App/docs`](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/tree/main/docs).
+[`HCW-MigrateOrchestrator_App/docs`](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/tree/main/docs).
 
 | Document | Purpose |
 |---|---|

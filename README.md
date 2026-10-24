@@ -6,7 +6,7 @@
 [![security](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/security.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/security.yml)
 [![core-update](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/core-update.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/core-update.yml)
 [![live](https://img.shields.io/website?url=https%3A%2F%2Fmigration.lab.hybridcloudworks.com%2Fapi%2Fhealth&label=live%20at%20%2Ftools%2Fmigration&up_message=yes&down_message=down)](https://hybridcloudworks.com/tools/migration)
-[![upstream](https://img.shields.io/badge/upstream-HCW--AzMigrateOrchestrator__App%20v0.3.1-6f42c1?logo=github)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/releases/tag/v0.3.1)
+[![upstream](https://img.shields.io/badge/upstream-HCW--MigrateOrchestrator__App%20v0.3.1-6f42c1?logo=github)](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/releases/tag/v0.3.1)
 [![node](https://img.shields.io/badge/node-%3E%3D26-339933?logo=node.js&logoColor=white)](docs/adr/ADR-0029-node-26-runtime-floor.md)
 [![docker hub](https://img.shields.io/badge/docker.io-hybridcloudworks%2Fhcw--addon--migration-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hybridcloudworks/hcw-addon-migration)
 [![license](https://img.shields.io/github/license/saulpatinojr/HCW-AzMigrateOrchestrator_Addon)](LICENSE)
@@ -20,7 +20,7 @@ upload the CSV that the Azure portal gives you under *All resources → Export t
 them), and read the plan or download the bundle. No account, no sign-in, nothing installed.
 
 This repository is the slim, downstream edition of the appliance in
-[`HCW-AzMigrateOrchestrator_App`](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App): the **CSV lab API**, the
+[`HCW-MigrateOrchestrator_App`](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App): the **CSV lab API**, the
 **pane app** the website frames at `/tools/migration`, the browser e2e, the lab image and the **website-integration docs**. The engine, rule corpus, CLI and explorer components live upstream and arrive here as the
 published packages `@hybridcloudworks/migration-core` and `@hybridcloudworks/migration-ui`.
 
@@ -30,7 +30,7 @@ published packages `@hybridcloudworks/migration-core` and `@hybridcloudworks/mig
 
 ```mermaid
 flowchart LR
-  App["HCW-AzMigrateOrchestrator_App<br/>upstream: engine · rules · CLI · UI components · appliance"]
+  App["HCW-MigrateOrchestrator_App<br/>upstream: engine · rules · CLI · UI components · appliance"]
   subgraph Addon["HCW-AzMigrateOrchestrator_Addon (this repository)"]
     L[CSV lab API<br/>apps/lab-api]
     P[Pane app<br/>apps/lab-web]

@@ -1,6 +1,6 @@
 # What's new upstream
 
-The upstream product is [`HCW-AzMigrateOrchestrator_App`](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App). This
+The upstream product is [`HCW-MigrateOrchestrator_App`](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App). This
 edition adopts its release tarballs (`@hybridcloudworks/migration-core` and `@hybridcloudworks/migration-ui`) and nothing else.
 
 ## How to use this file
@@ -13,7 +13,7 @@ edition (the upstream `CLAUDE.md` asks for the same), newest first, and keep the
 
 | Question | Answer |
 |---|---|
-| Upstream `main` | `570881e` (merge of upstream pull request #61). The documentation pull request #62 is the only open one |
+| Upstream `main` | `2c54b46` (merge of upstream pull request #68, the rename). Pull requests #62 and #68 are both merged |
 | Latest upstream release | `v0.3.1`, published 2026-10-11, tag commit `b7db4c8` (annotated tag) |
 | What this edition pins | `v0.3.1`: `migration-core` and `migration-ui` as release tarballs, by URL in `package.json` and by integrity hash in `package-lock.json` |
 | Drift between pin and latest release | None |
@@ -28,36 +28,53 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 
 ## Entries (newest first)
 
+### 2026-10-24: the upstream repository was renamed (now `HCW-MigrateOrchestrator_App`)
+
+- The upstream product `saulpatinojr/HCW-AzMigrateOrchestrator_App` is now `saulpatinojr/HCW-MigrateOrchestrator_App`
+  (upstream pull request [68](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/68) updates its own references).
+  GitHub redirects the old address, including release downloads, so nothing broke at the moment of the rename.
+- **Reaches this edition? Yes, and it is a change here.** `package.json` and `package-lock.json` now name the new address in the two
+  `v0.3.1` tarball URLs. The release tag is the same and the `integrity` hashes were not touched, because the files are the
+  same files; only the address in front of them changed. `core-update.yml` now looks for releases at the new name
+  (`UPSTREAM`); the way it reads the pinned tag and rewrites it does not depend on the repository name. The rest are links
+  and descriptions in the documents.
+- This edition's own name is unchanged (`HCW-AzMigrateOrchestrator_Addon`). Renaming it is a separate decision.
+- Left as written on purpose: the older changelog entry that records what happened at the time, and the ADR copies, which say
+  where they were copied from.
+- Next upstream release: its `package.json` files will name the new repository address (the upstream assembly script was updated).
+  That is metadata only. Nothing to run beyond the usual `core-update` check.
+- The old address keeps redirecting only while nobody creates a repository with the old name. Do not reuse it.
+
 ### 2026-10-24: documentation, repository protection and CI upstream
 
 | Upstream change | Reaches this edition? | Action here |
 |---|---|---|
-| [#62](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/62): README, plan, validation record and manifest label brought up to date; adds the rule that asks for entries in this file | No code. Docs only | None. This file exists because of it |
-| [#61](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/61): `appliance-image` is a required check on upstream `main` | No. It guards the appliance image, which this edition does not build or ship | None |
-| [#60](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/60): the appliance's Terraform `image_ref` has no `:latest` default and must be an exact `@sha256:` digest | **No.** The Terraform root `infrastructure/terraform/appliance-azure` is upstream-only. This edition deploys its own image, `docker.io/hybridcloudworks/hcw-addon-migration`, by digest through the website's `addons` Ansible role (`docs/deployment/lab-host.md`), and that path is unchanged | None |
-| [#59](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/59): pull requests upstream now build, lint (hadolint), scan (Trivy) and start the appliance image | No. Same reason as #61 | None |
-| [#58](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/58): documentation drift after the repository split fixed upstream; the ledger and matrix now mark `apps/lab-api`, `apps/lab-web`, `apps/ui-harness`, `docs/demo/*` and `infrastructure/coder` as owned by this edition | Docs only; confirms what this edition owns | None |
-| [#57](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/57): a manual administration workflow applies upstream rulesets for `main` and for `v*` tags | **Yes, in effect.** Release tags upstream can no longer be deleted or moved, so the release URLs and integrity hashes pinned here stay valid | Keep pinning by exact tag. Never point the pin at `main` or at a tag that is not a published release |
-| [#41](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/41) and [#56](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/56): plain-language rules for talking to the owner in upstream `CLAUDE.md` | No | None |
+| [#62](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/62): README, plan, validation record and manifest label brought up to date; adds the rule that asks for entries in this file | No code. Docs only | None. This file exists because of it |
+| [#61](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/61): `appliance-image` is a required check on upstream `main` | No. It guards the appliance image, which this edition does not build or ship | None |
+| [#60](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/60): the appliance's Terraform `image_ref` has no `:latest` default and must be an exact `@sha256:` digest | **No.** The Terraform root `infrastructure/terraform/appliance-azure` is upstream-only. This edition deploys its own image, `docker.io/hybridcloudworks/hcw-addon-migration`, by digest through the website's `addons` Ansible role (`docs/deployment/lab-host.md`), and that path is unchanged | None |
+| [#59](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/59): pull requests upstream now build, lint (hadolint), scan (Trivy) and start the appliance image | No. Same reason as #61 | None |
+| [#58](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/58): documentation drift after the repository split fixed upstream; the ledger and matrix now mark `apps/lab-api`, `apps/lab-web`, `apps/ui-harness`, `docs/demo/*` and `infrastructure/coder` as owned by this edition | Docs only; confirms what this edition owns | None |
+| [#57](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/57): a manual administration workflow applies upstream rulesets for `main` and for `v*` tags | **Yes, in effect.** Release tags upstream can no longer be deleted or moved, so the release URLs and integrity hashes pinned here stay valid | Keep pinning by exact tag. Never point the pin at `main` or at a tag that is not a published release |
+| [#41](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/41) and [#56](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/56): plain-language rules for talking to the owner in upstream `CLAUDE.md` | No | None |
 
 Published but not changed: the appliance image upstream was **not** published for `v0.3.0` or `v0.3.1` (the `publish-images`
-job is skipped while `DOCKERHUB_ENABLED` is not set; upstream ticket [#42](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/issues/42)).
+job is skipped while `DOCKERHUB_ENABLED` is not set; upstream ticket [#42](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/42)).
 That affects only the enterprise appliance. This edition's own image publishes from this repository.
 
 ### 2026-10-18 and 2026-10-19: dependency updates upstream (merged Dependabot pull requests)
 
 | Upstream change | Reaches this edition? | Action here |
 |---|---|---|
-| [#29](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/29) and [#38](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/38) `@radix-ui/react-dialog` to 1.3.1, [#33](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/33) `@radix-ui/react-tabs` to ^1.2.1, [#37](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/37) `react-dom` to 19.3.1 | **Yes, at the next upstream release.** `packages/ui/package.json` now declares `@radix-ui/react-dialog` ^1.3.1, `@radix-ui/react-tabs` ^1.2.1 and a `react-dom` peer of ^19.3.1 (they were ^1.1.6, ^1.1.3 and ^19.0.0 in `v0.3.1`). This edition's lock holds dialog 1.1.23 and tabs 1.1.21, so the `core-update` re-lock will move both. Its `react-dom` is already 19.3.1, which satisfies the new peer | When the `core-update` pull request arrives: run `npm ci`, `npm test` and `npm run e2e`; look at the two places the explorer uses them, the decision-detail dialog (`DecisionDetail`) and the generated-files tabs (`GeneratedFiles`), in the e2e report |
-| [#36](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/36) `@azure/msal-browser`, [#35](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/35) dev group, GitHub Actions updates ([#26](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/26), [#27](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/27), [#28](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/28), [#31](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/31), [#40](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/40)) | No. Appliance web app, upstream dev tooling and upstream workflows only | None |
-| [#34](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/34): a refreshed Microsoft Learn move-support diff report | No. It is a report under `rules/reports/`, outside the shipped rule corpus; the rules and snapshot (35 rules, 1.0.35) are unchanged | None |
+| [#29](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/29) and [#38](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/38) `@radix-ui/react-dialog` to 1.3.1, [#33](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/33) `@radix-ui/react-tabs` to ^1.2.1, [#37](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/37) `react-dom` to 19.3.1 | **Yes, at the next upstream release.** `packages/ui/package.json` now declares `@radix-ui/react-dialog` ^1.3.1, `@radix-ui/react-tabs` ^1.2.1 and a `react-dom` peer of ^19.3.1 (they were ^1.1.6, ^1.1.3 and ^19.0.0 in `v0.3.1`). This edition's lock holds dialog 1.1.23 and tabs 1.1.21, so the `core-update` re-lock will move both. Its `react-dom` is already 19.3.1, which satisfies the new peer | When the `core-update` pull request arrives: run `npm ci`, `npm test` and `npm run e2e`; look at the two places the explorer uses them, the decision-detail dialog (`DecisionDetail`) and the generated-files tabs (`GeneratedFiles`), in the e2e report |
+| [#36](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/36) `@azure/msal-browser`, [#35](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/35) dev group, GitHub Actions updates ([#26](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/26), [#27](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/27), [#28](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/28), [#31](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/31), [#40](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/40)) | No. Appliance web app, upstream dev tooling and upstream workflows only | None |
+| [#34](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/34): a refreshed Microsoft Learn move-support diff report | No. It is a report under `rules/reports/`, outside the shipped rule corpus; the rules and snapshot (35 rules, 1.0.35) are unchanged | None |
 
 ### 2026-10-11: build tooling upstream
 
 | Upstream change | Reaches this edition? | Action here |
 |---|---|---|
-| [#23](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/23): upstream builds with TypeScript 7, Vite 8 and `@vitejs/plugin-react` 6 | **Yes, at the next upstream release.** The published `dist/` and type declarations are compiled by the release workflow, so the next tarballs are built with TypeScript 7 instead of 5.6. `v0.3.1` was built before this change | Same checks as above; also run `npm run typecheck` here, since this edition's code consumes the published `.d.ts` files |
-| [#24](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/24) and [#25](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/pull/25): upstream workflow credentials and README | No | None |
+| [#23](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/23): upstream builds with TypeScript 7, Vite 8 and `@vitejs/plugin-react` 6 | **Yes, at the next upstream release.** The published `dist/` and type declarations are compiled by the release workflow, so the next tarballs are built with TypeScript 7 instead of 5.6. `v0.3.1` was built before this change | Same checks as above; also run `npm run typecheck` here, since this edition's code consumes the published `.d.ts` files |
+| [#24](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/24) and [#25](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/25): upstream workflow credentials and README | No | None |
 
 ### 2026-10-11: the last release this edition adopted
 
@@ -70,11 +87,11 @@ None of these blocks this edition today. Each is the owner's call upstream.
 
 | Upstream ticket | What it decides | Why it matters here |
 |---|---|---|
-| [#42](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/issues/42) | Whether and when the enterprise appliance image is published to Docker Hub | None for the pane. Until it is set, `v0.3.x` has no appliance image |
-| [#52](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/issues/52) | Release hygiene: per-job permissions, one job creating the release, an SBOM, a post-release check of the tarballs | The tag half is done (see #57 above). The SBOM would add a file next to the tarballs; the URLs this edition pins would not change |
-| [#44](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/issues/44) | Whether the appliance API gets an origin allow-list or is documented as same-origin only | None. This edition has its own exact-origin CORS and must not copy any wildcard |
-| [#46](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/issues/46) | Role model for the appliance's Entra sign-in | None. This edition has no sign-in by design |
-| [#53](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_App/issues/53) | Appliance Terraform hardening (subnet firewalls, backup, private endpoint) | None. Upstream infrastructure only |
+| [#42](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/42) | Whether and when the enterprise appliance image is published to Docker Hub | None for the pane. Until it is set, `v0.3.x` has no appliance image |
+| [#52](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/52) | Release hygiene: per-job permissions, one job creating the release, an SBOM, a post-release check of the tarballs | The tag half is done (see #57 above). The SBOM would add a file next to the tarballs; the URLs this edition pins would not change |
+| [#44](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/44) | Whether the appliance API gets an origin allow-list or is documented as same-origin only | None. This edition has its own exact-origin CORS and must not copy any wildcard |
+| [#46](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/46) | Role model for the appliance's Entra sign-in | None. This edition has no sign-in by design |
+| [#53](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/53) | Appliance Terraform hardening (subnet firewalls, backup, private endpoint) | None. Upstream infrastructure only |
 
 ## Known documentation errors outside this repository
 
