@@ -9,7 +9,7 @@ Read it before you change behaviour, bump the upstream pin or review a `core-upd
 upstream, whether it reaches this edition, and what to run. Add an entry when a change lands upstream that reaches this
 edition (the upstream `CLAUDE.md` asks for the same), newest first, and keep the table below true.
 
-## Current upstream state (checked 2026-10-24)
+## Current upstream state (checked 2026-10-25)
 
 | Question | Answer |
 |---|---|
@@ -18,7 +18,7 @@ edition (the upstream `CLAUDE.md` asks for the same), newest first, and keep the
 | What this edition pins | `v0.3.1`: `migration-core` and `migration-ui` as release tarballs, by URL in `package.json` and by integrity hash in `package-lock.json` |
 | Drift between pin and latest release | None |
 | Do the pinned hashes match the published assets? | Yes. The two `v0.3.1` tarballs were downloaded on 2026-10-24 and their SHA-512 values equal the `integrity` entries in `package-lock.json` (`sha512-94xboh+o…` for core, `sha512-DaD5DRD1…` for ui) |
-| Unreleased upstream changes that touch the tarballs | One: `migration-ui`'s `package.json` has newer dependency ranges (see the 2026-10-18 and 2026-10-19 entry), and the next release is compiled with TypeScript 7 (2026-10-11 entry). Nothing under `packages/*/src` and nothing in the shipped rule corpus has changed since `v0.3.1` |
+| Unreleased upstream changes that touch the tarballs | Two. (1) The log redaction fix in `migration-core`'s `observability` module (2026-10-25 entry below). (2) `migration-ui`'s `package.json` has newer dependency ranges (see the 2026-10-18 and 2026-10-19 entry), and the next release is compiled with TypeScript 7 (2026-10-11 entry). Besides the redaction fix, nothing under `packages/*/src` that is published and nothing in the shipped rule corpus has changed since `v0.3.1` (the `azure-*` packages under `packages/` are never published) |
 | Tags | Upstream now has a ruleset that stops `v*` tags being deleted or moved. Before 2026-10-24 the `v0.3.1` tag had been moved once; the final assets match the pin, but a moved tag is exactly how a pinned URL could change underneath this edition |
 
 How "nothing changed" was checked: `git diff v0.3.1 origin/main -- packages rules scripts/assemble-packages.mjs` upstream lists
@@ -27,6 +27,12 @@ only `packages/ui/package.json` and the rule-diff report files under `rules/repo
 The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 
 ## Entries (newest first)
+
+### 2026-10-25: the next core release hides sign-in tokens and private keys in logs (upstream pull request 81)
+
+- Upstream [pull request 81](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/81) fixes `redact()` in `@hybridcloudworks/migration-core/observability`, the function that hides secrets before a log line is written. Before, a JWT (a sign-in token that starts `eyJ`) and a PEM private key block were not hidden: the old code kept everything before the first `=` or `:` of the match, and those two have neither, so the token or key stayed in the log with `=[REDACTED]` added after it. Now both are replaced whole with `[REDACTED]`, values such as `password=...` still keep their key name, and the patterns cannot be slowed down by a very long line. The ticket is [upstream issue 77](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/77).
+- **Reaches this edition? Yes, at the next upstream release, not before.** `v0.3.1`, which this edition pins, still has the old function. The lab API builds its logger with `createLogger` from that module (`apps/lab-api/src/app.ts`), and `createLogger` runs every message and every text attribute through `redact()`. This edition's own log lines carry request ids, counts and error messages, never a request body or a CSV row, so no leak is known here; the change closes the gap for any token or key that does reach a message (an error message, for example).
+- **Action here:** none now. When the `core-update` pull request for the release that carries it arrives, run `npm ci`, `npm test` and `npm run e2e`, and add that release to this file. Nothing in this edition's code needs to change.
 
 ### 2026-10-25: this edition's lab image was renamed (now `img-mo-lab-addon`)
 
