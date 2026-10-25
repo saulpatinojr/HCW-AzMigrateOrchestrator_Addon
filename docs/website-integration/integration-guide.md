@@ -31,7 +31,7 @@ one iframe. The AddOn serves its own pane app (`apps/lab-web`, built into `dist/
   technology: ['azure-resource-mover', 'terraform'],
   status: 'available',
   capabilities: ['navigate', 'downloads'],
-  docsUrl: 'https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon#readme',
+  docsUrl: 'https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn#readme',
   articleSlugs: [],
 }
 ```

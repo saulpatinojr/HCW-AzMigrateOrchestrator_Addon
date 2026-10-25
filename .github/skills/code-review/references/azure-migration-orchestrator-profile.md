@@ -1,6 +1,6 @@
 # Azure Migration Orchestrator AddOn repository profile
 
-Use this profile for `saulpatinojr/HCW-AzMigrateOrchestrator_Addon` (the downstream web-front edition, ADR-0028, ADR-0030). The engine, rules, CLI, UI components, and enterprise appliance live upstream in `saulpatinojr/HCW-MigrateOrchestrator_App`.
+Use this profile for `saulpatinojr/HCW-MigrateOrchestrator_AddOn` (the downstream web-front edition, ADR-0028, ADR-0030). The engine, rules, CLI, UI components, and enterprise appliance live upstream in `saulpatinojr/HCW-MigrateOrchestrator_App`.
 
 ## Component routing
 

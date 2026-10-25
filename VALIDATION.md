@@ -1,6 +1,6 @@
 # VALIDATION.md
 
-Web-front edition (`saulpatinojr/HCW-AzMigrateOrchestrator_Addon`, ADR-0028). Everything below distinguishes what was executed
+Web-front edition (`saulpatinojr/HCW-MigrateOrchestrator_AddOn`, ADR-0028). Everything below distinguishes what was executed
 from what was not. Engine, rule and UI validation lives upstream in `saulpatinojr/HCW-MigrateOrchestrator_App/VALIDATION.md`.
 
 ## Pane model, 0.3.0 (2026-10-10)
