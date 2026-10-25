@@ -18,7 +18,7 @@ edition (the upstream `CLAUDE.md` asks for the same), newest first, and keep the
 | What this edition pins | `v0.3.1`: `migration-core` and `migration-ui` as release tarballs, by URL in `package.json` and by integrity hash in `package-lock.json` |
 | Drift between pin and latest release | None |
 | Do the pinned hashes match the published assets? | Yes. The two `v0.3.1` tarballs were downloaded on 2026-10-24 and their SHA-512 values equal the `integrity` entries in `package-lock.json` (`sha512-94xboh+o…` for core, `sha512-DaD5DRD1…` for ui) |
-| Unreleased upstream changes that touch the tarballs | Two. (1) The log redaction fix in `migration-core`'s `observability` module (2026-10-25 entry below). (2) `migration-ui`'s `package.json` has newer dependency ranges (see the 2026-10-18 and 2026-10-19 entry), and the next release is compiled with TypeScript 7 (2026-10-11 entry). Besides the redaction fix, nothing under `packages/*/src` that is published and nothing in the shipped rule corpus has changed since `v0.3.1` (the `azure-*` packages under `packages/` are never published) |
+| Unreleased upstream changes that touch the tarballs | Three. (1) The log redaction fix in `migration-core`'s `observability` module, and (2) slow-expression and escaping fixes plus a one-cell length limit in `terraform-generator`, `report-engine` and `csv-ingestion` (both in the 2026-10-25 entries below). (3) `migration-ui`'s `package.json` has newer dependency ranges (see the 2026-10-18 and 2026-10-19 entry), and the next release is compiled with TypeScript 7 (2026-10-11 entry). Besides the redaction fix, nothing under `packages/*/src` that is published and nothing in the shipped rule corpus has changed since `v0.3.1` (the `azure-*` packages under `packages/` are never published) |
 | Tags | Upstream now has a ruleset that stops `v*` tags being deleted or moved. Before 2026-10-24 the `v0.3.1` tag had been moved once; the final assets match the pin, but a moved tag is exactly how a pinned URL could change underneath this edition |
 
 How "nothing changed" was checked: `git diff v0.3.1 origin/main -- packages rules scripts/assemble-packages.mjs` upstream lists
@@ -27,6 +27,12 @@ only `packages/ui/package.json` and the rule-diff report files under `rules/repo
 The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 
 ## Entries (newest first)
+
+### 2026-10-25: the next core release limits one CSV cell to 65,536 characters and fixes slow expressions (upstream pull request 88)
+
+- Upstream [pull request 88](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/88) (ticket [77](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/issues/77)) changes three published modules. (1) `csv-ingestion`: `ingestResourcesCsv()` now skips a row that has a cell longer than 65,536 characters, with a warning that names the row and column, and refuses a file whose header cell is that long. Until now the only limits were the whole upload (5 MB) and the row count (5,000), so one cell could be 5 MB. (2) `terraform-generator`: the function that turns a resource name into a Terraform identifier no longer has a regular expression that a long run of underscores could make very slow. (3) `report-engine`: a backslash in a name or note is now doubled in the Markdown reports so it cannot cancel the escape of a `|` and split a table row.
+- **Reaches this edition? Yes, at the next upstream release.** `v0.3.1` still has the old behaviour. This edition's upload path (`apps/lab-api/src/app.ts`) passes only `maxRows` and `maxBytes`, so it gets the new cell limit as the default without a code change. The limits this edition must never weaken (5 MB, 5,000 rows) are untouched. Visible effect for a visitor: a CSV with a 65,537-character cell loses that one row and sees the warning; a normal export is not affected (the longest real value, the tags cell, is about 40,000 characters at most).
+- **Action here:** none now. When the `core-update` pull request for the release that carries it arrives, run `npm ci`, `npm test` and `npm run e2e`, and add that release to this file.
 
 ### 2026-10-25: the next core release hides sign-in tokens and private keys in logs (upstream pull request 81)
 
