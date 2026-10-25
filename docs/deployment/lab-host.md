@@ -60,7 +60,11 @@ Success looks like: the command prints nothing and exits 0. The value never appe
 
 **2. Allow this repository to publish to Docker Hub.** In Docker Home create an OIDC connection for this repository trusting
 `repo:saulpatinojr@34853639/HCW-MigrateOrchestrator_AddOn@1403980201:ref:refs/tags/*` (the repository id, read with
-`gh api repos/saulpatinojr/HCW-MigrateOrchestrator_AddOn --jq .id` on 2026-10-10) with read and write on `hybridcloudworks/img-mo-lab-addon`, then set the two repository variables
+`gh api repos/saulpatinojr/HCW-MigrateOrchestrator_AddOn --jq .id` on 2026-10-10; the id did not change when the repository was renamed from
+`HCW-AzMigrateOrchestrator_Addon` on 2026-10-24, but the name in the subject did, so a connection made before the rename must have its
+subject claim edited in Docker Home (**Identity & auth**, **OIDC connections**, the connection's menu, **Edit**; see
+[Create and manage OIDC connections](https://docs.docker.com/security/authentication/oidc-connections/create-manage/)),
+or the next tag's `publish-images` run fails at the Docker login) with read and write on `hybridcloudworks/img-mo-lab-addon`, then set the two repository variables
 (PowerShell; `gh` must be signed in):
 
 ```powershell

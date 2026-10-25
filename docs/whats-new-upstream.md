@@ -28,11 +28,10 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 
 ## Entries (newest first)
 
-### 2026-10-25: this edition was renamed (now `HCW-MigrateOrchestrator_AddOn`)
+### 2026-10-25: this edition's lab image was renamed (now `img-mo-lab-addon`)
 
-- This repository is now `saulpatinojr/HCW-MigrateOrchestrator_AddOn` (note the capital O). GitHub redirects the old address. Nothing upstream changed except wording: the upstream repository's documents and comments follow the new name (upstream pull request [70](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/70)).
-- **Reaches this edition? Only the name.** The release tarball pins, hashes and the `core-update` workflow are unchanged (they point at the upstream repository, not at this one). The Docker OIDC connection's subject claim names this repository, so it was updated by the owner.
-- Separately, this edition's lab image is now `docker.io/hybridcloudworks/img-mo-lab-addon` with the full release tag (`v0.3.1`) as its tag; see `CHANGELOG.md`.
+- The lab image is now `docker.io/hybridcloudworks/img-mo-lab-addon` (owner naming convention `img-<short name>-<job>-<type>`), and its tag is the full release tag (`v0.3.1`, not `0.3.1`). The container name on the lab host is unchanged.
+- **Reaches this edition? Only the image name.** The release tarball pins, hashes and the `core-update` workflow are unchanged. The Docker OIDC connection must allow this repository to push to the new Docker Hub repository before the next `v*` tag; see `CHANGELOG.md` and `docs/deployment/lab-host.md`.
 
 ### 2026-10-24: the upstream repository was renamed (now `HCW-MigrateOrchestrator_App`)
 
@@ -44,7 +43,7 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
   same files; only the address in front of them changed. `core-update.yml` now looks for releases at the new name
   (`UPSTREAM`); the way it reads the pinned tag and rewrites it does not depend on the repository name. The rest are links
   and descriptions in the documents.
-- This edition itself was renamed on 2026-10-25 from `HCW-AzMigrateOrchestrator_Addon` to `HCW-MigrateOrchestrator_AddOn` (see the entry above).
+- This edition was renamed on 2026-10-24 from `HCW-AzMigrateOrchestrator_Addon` to `HCW-MigrateOrchestrator_AddOn`, to match the upstream App and the other add-ons. GitHub redirects the old address.
 - Left as written on purpose: the older changelog entry that records what happened at the time, and the ADR copies, which say
   where they were copied from.
 - Next upstream release: its `package.json` files will name the new repository address (the upstream assembly script was updated).
