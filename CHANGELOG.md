@@ -6,6 +6,7 @@ The engine, rules, CLI and UI components are versioned and released upstream in 
 ## Unreleased
 
 - `.github/workflows/guide-drift.yml` switches on the website's check that this repository's integration guide still says what the website says (website issue saulpatinojr/HCW-HybridCloudWorks#1356). It calls a reusable workflow (a workflow that another repository can call, like a function) from the website repository, pinned to a full commit, and compares the catalogue row pasted into `docs/website-integration/integration-guide.md` with the website's row for `migration`, field by field. It runs on pull requests that touch the guide or this workflow, every Monday at 06:35 UTC and on demand. It holds no secret and has `contents: read` only. To switch it off, delete the file. How to read a failure: https://github.com/saulpatinojr/HCW-HybridCloudWorks/blob/main/docs/runbooks/addon-guide-drift.md
+- `docs/whats-new-upstream.md`: an entry says the next core release carries the log redaction fix (upstream pull request 81: sign-in tokens and private keys are now hidden by `redact()`), and the "Current upstream state" table is brought up to 2026-10-25. Documentation only; no code, pin or dependency changes.
 
 ## 0.3.2 — 2026-10-25: the pane follows the site's theme, the image has its new name, and the old `vite` copy is gone
 
