@@ -28,6 +28,11 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 
 ## Entries (newest first)
 
+### 2026-10-25: this edition's lab image was renamed (now `img-mo-lab-addon`)
+
+- The lab image is now `docker.io/hybridcloudworks/img-mo-lab-addon` (owner naming convention `img-<short name>-<job>-<type>`), and its tag is the full release tag (`v0.3.1`, not `0.3.1`). The container name on the lab host is unchanged.
+- **Reaches this edition? Only the image name.** The release tarball pins, hashes and the `core-update` workflow are unchanged. The Docker OIDC connection must allow this repository to push to the new Docker Hub repository before the next `v*` tag; see `CHANGELOG.md` and `docs/deployment/lab-host.md`.
+
 ### 2026-10-24: the upstream repository was renamed (now `HCW-MigrateOrchestrator_App`)
 
 - The upstream product `saulpatinojr/HCW-AzMigrateOrchestrator_App` is now `saulpatinojr/HCW-MigrateOrchestrator_App`
@@ -51,7 +56,7 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 |---|---|---|
 | [#62](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/62): README, plan, validation record and manifest label brought up to date; adds the rule that asks for entries in this file | No code. Docs only | None. This file exists because of it |
 | [#61](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/61): `appliance-image` is a required check on upstream `main` | No. It guards the appliance image, which this edition does not build or ship | None |
-| [#60](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/60): the appliance's Terraform `image_ref` has no `:latest` default and must be an exact `@sha256:` digest | **No.** The Terraform root `infrastructure/terraform/appliance-azure` is upstream-only. This edition deploys its own image, `docker.io/hybridcloudworks/hcw-addon-migration`, by digest through the website's `addons` Ansible role (`docs/deployment/lab-host.md`), and that path is unchanged | None |
+| [#60](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/60): the appliance's Terraform `image_ref` has no `:latest` default and must be an exact `@sha256:` digest | **No.** The Terraform root `infrastructure/terraform/appliance-azure` is upstream-only. This edition deploys its own image, `docker.io/hybridcloudworks/img-mo-lab-addon`, by digest through the website's `addons` Ansible role (`docs/deployment/lab-host.md`), and that path is unchanged | None |
 | [#59](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/59): pull requests upstream now build, lint (hadolint), scan (Trivy) and start the appliance image | No. Same reason as #61 | None |
 | [#58](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/58): documentation drift after the repository split fixed upstream; the ledger and matrix now mark `apps/lab-api`, `apps/lab-web`, `apps/ui-harness`, `docs/demo/*` and `infrastructure/coder` as owned by this edition | Docs only; confirms what this edition owns | None |
 | [#57](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/57): a manual administration workflow applies upstream rulesets for `main` and for `v*` tags | **Yes, in effect.** Release tags upstream can no longer be deleted or moved, so the release URLs and integrity hashes pinned here stay valid | Keep pinning by exact tag. Never point the pin at `main` or at a tag that is not a published release |

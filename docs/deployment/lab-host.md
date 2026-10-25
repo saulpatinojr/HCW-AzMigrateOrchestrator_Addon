@@ -8,7 +8,7 @@ hybridcloudworks.com lab host as one hardened container created by the website r
 | Field | Value |
 |---|---|
 | `id` | `migration` |
-| `image` / `image_tag` / `image_digest` | `docker.io/hybridcloudworks/hcw-addon-migration` / `0.3.0` / the digest `publish-images.yml` printed |
+| `image` / `image_tag` / `image_digest` | `docker.io/hybridcloudworks/img-mo-lab-addon` / `v0.3.0` / the digest `publish-images.yml` printed |
 | `port` | `18081` (published as `127.0.0.1:18081:8080`, loopback only) |
 | `memory` / `pids` | `512m` / `256` |
 | hardening (the role applies it) | read-only root, `tmpfs /tmp`, `cap_drop ALL`, `no-new-privileges`, one CPU, `restart unless-stopped`, the image's `HEALTHCHECK`, no volumes, no socket, default bridge |
@@ -64,7 +64,7 @@ Success looks like: the command prints nothing and exits 0. The value never appe
 `HCW-AzMigrateOrchestrator_Addon` on 2026-10-24, but the name in the subject did, so a connection made before the rename must have its
 subject claim edited in Docker Home (**Identity & auth**, **OIDC connections**, the connection's menu, **Edit**; see
 [Create and manage OIDC connections](https://docs.docker.com/security/authentication/oidc-connections/create-manage/)),
-or the next tag's `publish-images` run fails at the Docker login) with read and write on `hybridcloudworks/hcw-addon-migration`, then set the two repository variables
+or the next tag's `publish-images` run fails at the Docker login) with read and write on `hybridcloudworks/img-mo-lab-addon`, then set the two repository variables
 (PowerShell; `gh` must be signed in):
 
 ```powershell
@@ -76,7 +76,7 @@ The first line reads the connection's UUID from the clipboard. Until both are se
 website catalogue row stays `coming`.
 
 **3. Release.** Tag the release here (the current one is `v0.3.1`); the run summary of `publish-images` prints
-`docker.io/hybridcloudworks/hcw-addon-migration@sha256:…`. Put that digest and the tag in the website's `group_vars/all.yml`
+`docker.io/hybridcloudworks/img-mo-lab-addon@sha256:…`. Put that digest and the tag in the website's `group_vars/all.yml`
 and apply the host from the website repository as its README describes (PowerShell):
 
 ```powershell
