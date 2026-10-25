@@ -8,7 +8,7 @@ hybridcloudworks.com lab host as one hardened container created by the website r
 | Field | Value |
 |---|---|
 | `id` | `migration` |
-| `image` / `image_tag` / `image_digest` | `docker.io/hybridcloudworks/hcw-migrateorchestrator` / `0.3.0` / the digest `publish-images.yml` printed |
+| `image` / `image_tag` / `image_digest` | `docker.io/hybridcloudworks/img-mo-lab-addon` / `v0.3.0` / the digest `publish-images.yml` printed |
 | `port` | `18081` (published as `127.0.0.1:18081:8080`, loopback only) |
 | `memory` / `pids` | `512m` / `256` |
 | hardening (the role applies it) | read-only root, `tmpfs /tmp`, `cap_drop ALL`, `no-new-privileges`, one CPU, `restart unless-stopped`, the image's `HEALTHCHECK`, no volumes, no socket, default bridge |
@@ -59,20 +59,20 @@ cat /dev/clipboard | ssh hcw-lab "sudo -n /usr/local/sbin/hcw-vault-set vault_ad
 Success looks like: the command prints nothing and exits 0. The value never appears on a command line or in output.
 
 **2. Allow this repository to publish to Docker Hub.** In Docker Home create an OIDC connection for this repository trusting
-`repo:saulpatinojr@34853639/HCW-AzMigrateOrchestrator_Addon@1403980201:ref:refs/tags/*` (the repository id, read with
-`gh api repos/saulpatinojr/HCW-AzMigrateOrchestrator_Addon --jq .id` on 2026-10-10) with read and write on `hybridcloudworks/hcw-migrateorchestrator`, then set the two repository variables
+`repo:saulpatinojr@34853639/HCW-MigrateOrchestrator_AddOn@1403980201:ref:refs/tags/*` (the repository id, read with
+`gh api repos/saulpatinojr/HCW-MigrateOrchestrator_AddOn --jq .id` on 2026-10-10) with read and write on `hybridcloudworks/img-mo-lab-addon`, then set the two repository variables
 (PowerShell; `gh` must be signed in):
 
 ```powershell
-gh variable set DOCKERHUB_CONNECTION --repo saulpatinojr/HCW-AzMigrateOrchestrator_Addon --body (Get-Clipboard)
-gh variable set DOCKERHUB_ENABLED --repo saulpatinojr/HCW-AzMigrateOrchestrator_Addon --body true
+gh variable set DOCKERHUB_CONNECTION --repo saulpatinojr/HCW-MigrateOrchestrator_AddOn --body (Get-Clipboard)
+gh variable set DOCKERHUB_ENABLED --repo saulpatinojr/HCW-MigrateOrchestrator_AddOn --body true
 ```
 
 The first line reads the connection's UUID from the clipboard. Until both are set, `publish-images.yml` skips and the
 website catalogue row stays `coming`.
 
 **3. Release.** Tag the release here (the current one is `v0.3.1`); the run summary of `publish-images` prints
-`docker.io/hybridcloudworks/hcw-migrateorchestrator@sha256:…`. Put that digest and the tag in the website's `group_vars/all.yml`
+`docker.io/hybridcloudworks/img-mo-lab-addon@sha256:…`. Put that digest and the tag in the website's `group_vars/all.yml`
 and apply the host from the website repository as its README describes (PowerShell):
 
 ```powershell

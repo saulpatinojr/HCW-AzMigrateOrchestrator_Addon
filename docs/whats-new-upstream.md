@@ -28,6 +28,12 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 
 ## Entries (newest first)
 
+### 2026-10-25: this edition was renamed (now `HCW-MigrateOrchestrator_AddOn`)
+
+- This repository is now `saulpatinojr/HCW-MigrateOrchestrator_AddOn` (note the capital O). GitHub redirects the old address. Nothing upstream changed except wording: the upstream repository's documents and comments follow the new name (upstream pull request [70](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/70)).
+- **Reaches this edition? Only the name.** The release tarball pins, hashes and the `core-update` workflow are unchanged (they point at the upstream repository, not at this one). The Docker OIDC connection's subject claim names this repository, so it was updated by the owner.
+- Separately, this edition's lab image is now `docker.io/hybridcloudworks/img-mo-lab-addon` with the full release tag (`v0.3.1`) as its tag; see `CHANGELOG.md`.
+
 ### 2026-10-24: the upstream repository was renamed (now `HCW-MigrateOrchestrator_App`)
 
 - The upstream product `saulpatinojr/HCW-AzMigrateOrchestrator_App` is now `saulpatinojr/HCW-MigrateOrchestrator_App`
@@ -38,7 +44,7 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
   same files; only the address in front of them changed. `core-update.yml` now looks for releases at the new name
   (`UPSTREAM`); the way it reads the pinned tag and rewrites it does not depend on the repository name. The rest are links
   and descriptions in the documents.
-- This edition's own name is unchanged (`HCW-AzMigrateOrchestrator_Addon`). Renaming it is a separate decision.
+- This edition itself was renamed on 2026-10-25 from `HCW-AzMigrateOrchestrator_Addon` to `HCW-MigrateOrchestrator_AddOn` (see the entry above).
 - Left as written on purpose: the older changelog entry that records what happened at the time, and the ADR copies, which say
   where they were copied from.
 - Next upstream release: its `package.json` files will name the new repository address (the upstream assembly script was updated).
@@ -51,7 +57,7 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
 |---|---|---|
 | [#62](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/62): README, plan, validation record and manifest label brought up to date; adds the rule that asks for entries in this file | No code. Docs only | None. This file exists because of it |
 | [#61](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/61): `appliance-image` is a required check on upstream `main` | No. It guards the appliance image, which this edition does not build or ship | None |
-| [#60](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/60): the appliance's Terraform `image_ref` has no `:latest` default and must be an exact `@sha256:` digest | **No.** The Terraform root `infrastructure/terraform/appliance-azure` is upstream-only. This edition deploys its own image, `docker.io/hybridcloudworks/hcw-migrateorchestrator`, by digest through the website's `addons` Ansible role (`docs/deployment/lab-host.md`), and that path is unchanged | None |
+| [#60](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/60): the appliance's Terraform `image_ref` has no `:latest` default and must be an exact `@sha256:` digest | **No.** The Terraform root `infrastructure/terraform/appliance-azure` is upstream-only. This edition deploys its own image, `docker.io/hybridcloudworks/img-mo-lab-addon`, by digest through the website's `addons` Ansible role (`docs/deployment/lab-host.md`), and that path is unchanged | None |
 | [#59](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/59): pull requests upstream now build, lint (hadolint), scan (Trivy) and start the appliance image | No. Same reason as #61 | None |
 | [#58](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/58): documentation drift after the repository split fixed upstream; the ledger and matrix now mark `apps/lab-api`, `apps/lab-web`, `apps/ui-harness`, `docs/demo/*` and `infrastructure/coder` as owned by this edition | Docs only; confirms what this edition owns | None |
 | [#57](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/57): a manual administration workflow applies upstream rulesets for `main` and for `v*` tags | **Yes, in effect.** Release tags upstream can no longer be deleted or moved, so the release URLs and integrity hashes pinned here stay valid | Keep pinning by exact tag. Never point the pin at `main` or at a tag that is not a published release |
@@ -97,4 +103,4 @@ None of these blocks this edition today. Each is the owner's call upstream.
 
 - The GitHub Release notes for this edition's `v0.3.1` say it adopts "`@amo/migration-core` and `@amo/report-templates`". The
   packages are `@hybridcloudworks/migration-core` and `@hybridcloudworks/migration-ui`. Release notes are published text, so this
-  was not edited; an owner can correct it on the [release page](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/releases/tag/v0.3.1).
+  was not edited; an owner can correct it on the [release page](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/releases/tag/v0.3.1).

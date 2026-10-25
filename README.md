@@ -2,14 +2,14 @@
 
 **The web-front edition of the Azure Migration Orchestrator — downstream of the appliance.**
 
-[![ci](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/ci.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/ci.yml)
-[![security](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/security.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/security.yml)
-[![core-update](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/core-update.yml/badge.svg)](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/actions/workflows/core-update.yml)
+[![ci](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/actions/workflows/ci.yml/badge.svg)](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/actions/workflows/ci.yml)
+[![security](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/actions/workflows/security.yml/badge.svg)](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/actions/workflows/security.yml)
+[![core-update](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/actions/workflows/core-update.yml/badge.svg)](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/actions/workflows/core-update.yml)
 [![live](https://img.shields.io/website?url=https%3A%2F%2Fmigration.lab.hybridcloudworks.com%2Fapi%2Fhealth&label=live%20at%20%2Ftools%2Fmigration&up_message=yes&down_message=down)](https://hybridcloudworks.com/tools/migration)
 [![upstream](https://img.shields.io/badge/upstream-HCW--MigrateOrchestrator__App%20v0.3.1-6f42c1?logo=github)](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/releases/tag/v0.3.1)
 [![node](https://img.shields.io/badge/node-%3E%3D26-339933?logo=node.js&logoColor=white)](docs/adr/ADR-0029-node-26-runtime-floor.md)
-[![docker hub](https://img.shields.io/badge/docker.io-hybridcloudworks%2Fhcw--migrateorchestrator-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hybridcloudworks/hcw-migrateorchestrator)
-[![license](https://img.shields.io/github/license/saulpatinojr/HCW-AzMigrateOrchestrator_Addon)](LICENSE)
+[![docker hub](https://img.shields.io/badge/docker.io-hybridcloudworks%2Fimg--mo--lab--addon-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hybridcloudworks/img-mo-lab-addon)
+[![license](https://img.shields.io/github/license/saulpatinojr/HCW-MigrateOrchestrator_AddOn)](LICENSE)
 
 Upload the `resources.csv` exported from the Azure portal and see how every resource would move — with evidence, confidence,
 prerequisites, risks, and generated Terraform, scripts and runbooks. The explorer **never touches Azure, never asks for
@@ -31,10 +31,10 @@ published packages `@hybridcloudworks/migration-core` and `@hybridcloudworks/mig
 ```mermaid
 flowchart LR
   App["HCW-MigrateOrchestrator_App<br/>upstream: engine · rules · CLI · UI components · appliance"]
-  subgraph Addon["HCW-AzMigrateOrchestrator_Addon (this repository)"]
+  subgraph Addon["HCW-MigrateOrchestrator_AddOn (this repository)"]
     L[CSV lab API<br/>apps/lab-api]
     P[Pane app<br/>apps/lab-web]
-    I[Lab image<br/>docker.io/hybridcloudworks/hcw-migrateorchestrator]
+    I[Lab image<br/>docker.io/hybridcloudworks/img-mo-lab-addon]
   end
   W["hybridcloudworks.com<br/>/tools/migration (pane)"]
   H[Lab host<br/>website repo's addons role · Caddy]
@@ -101,7 +101,7 @@ tests this edition against it and opens the pull request.
 
 The upstream release this edition is built against is the `v*` tag in the two tarball URLs of `package.json`; it changes
 only through a reviewed pull request, normally the one `core-update` opens (both URLs and the lock move together). A `v*` tag here publishes the lab image to
-`docker.io/hybridcloudworks/hcw-migrateorchestrator` after a vulnerability scan, with provenance and SBOM, through the Docker OIDC
+`docker.io/hybridcloudworks/img-mo-lab-addon` after a vulnerability scan, with provenance and SBOM, through the Docker OIDC
 connection (no registry secrets); the website pins the digest the run prints. `X-Addon-Version` and `/api/health.version`
 report the version released. Tags `v0.1.0`–`v0.1.3` predate the flip to this edition and are historical.
 
