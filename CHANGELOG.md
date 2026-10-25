@@ -3,6 +3,10 @@
 The engine, rules, CLI and UI components are versioned and released upstream in `saulpatinojr/HCW-MigrateOrchestrator_App`
 (see its `CHANGELOG.md`, which also carries the history of the pre-split monorepo). This file tracks the web-front edition only.
 
+## Unreleased
+
+- `.github/workflows/guide-drift.yml` switches on the website's check that this repository's integration guide still says what the website says (website issue saulpatinojr/HCW-HybridCloudWorks#1356). It calls a reusable workflow (a workflow that another repository can call, like a function) from the website repository, pinned to a full commit, and compares the catalogue row pasted into `docs/website-integration/integration-guide.md` with the website's row for `migration`, field by field. It runs on pull requests that touch the guide or this workflow, every Monday at 06:35 UTC and on demand. It holds no secret and has `contents: read` only. To switch it off, delete the file. How to read a failure: https://github.com/saulpatinojr/HCW-HybridCloudWorks/blob/main/docs/runbooks/addon-guide-drift.md
+
 ## 0.3.2 — 2026-10-25: the pane follows the site's theme, the image has its new name, and the old `vite` copy is gone
 
 - `package-lock.json` no longer holds `vite` 6.4.3. It was hoisted as the peer of `@tailwindcss/vite`, below the fixed 6.4.4, and Dependabot raised five alerts on it (one high, GHSA-587h-7wmj-h5pm; four medium or low) that it could not turn into a pull request because nothing depends on `vite` directly at the root. `npm update vite` moved it to the 8.3.5 the pane already builds with and deduplicated the two copies; the old 6.x chain (`esbuild`, `rollup` and their platform binaries) and one orphaned `@napi-rs/lzma-linux-x64-gnu` entry that nothing required are gone, `vite` 8's own Linux bindings (`@rolldown/binding-linux-x64-gnu` and the musl one) are present, and the two upstream tarballs' integrity hashes are unchanged.
