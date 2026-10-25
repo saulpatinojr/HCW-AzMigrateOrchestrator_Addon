@@ -38,7 +38,7 @@ The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
   same files; only the address in front of them changed. `core-update.yml` now looks for releases at the new name
   (`UPSTREAM`); the way it reads the pinned tag and rewrites it does not depend on the repository name. The rest are links
   and descriptions in the documents.
-- This edition's own name is unchanged (`HCW-AzMigrateOrchestrator_Addon`). Renaming it is a separate decision.
+- This edition was renamed on 2026-10-24 from `HCW-AzMigrateOrchestrator_Addon` to `HCW-MigrateOrchestrator_AddOn`, to match the upstream App and the other add-ons. GitHub redirects the old address.
 - Left as written on purpose: the older changelog entry that records what happened at the time, and the ADR copies, which say
   where they were copied from.
 - Next upstream release: its `package.json` files will name the new repository address (the upstream assembly script was updated).
@@ -97,4 +97,4 @@ None of these blocks this edition today. Each is the owner's call upstream.
 
 - The GitHub Release notes for this edition's `v0.3.1` say it adopts "`@amo/migration-core` and `@amo/report-templates`". The
   packages are `@hybridcloudworks/migration-core` and `@hybridcloudworks/migration-ui`. Release notes are published text, so this
-  was not edited; an owner can correct it on the [release page](https://github.com/saulpatinojr/HCW-AzMigrateOrchestrator_Addon/releases/tag/v0.3.1).
+  was not edited; an owner can correct it on the [release page](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/releases/tag/v0.3.1).
