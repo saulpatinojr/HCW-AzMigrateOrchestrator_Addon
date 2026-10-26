@@ -124,6 +124,7 @@ test("the probe step only reads, and fails if the token covers more than this re
   assert.match(probe[0], /gh api "repos\/\$\{REPO\}"/);
   assert.match(probe[0], /gh api installation\/repositories/);
   assert.match(probe[0], /test "\$\{covered\}" = "\$\{REPO\}"/);
-  // `gh api` turns into a POST as soon as it is given a field, so fields and bodies are as forbidden as -X.
-  assert.ok(!/\bgh pr\b|\bgit\b|--method|\s-X\s|\s-[fF]\s|--field|--raw-field|--input/.test(probe[0]), "the probe must not write");
+  // `gh api` turns into a POST as soon as it is given a field, so fields and bodies are as forbidden as -X, with
+  // the value attached (-XPOST, -fname=value) or separate.
+  assert.ok(!/\bgh pr\b|\bgit\b|--method|\s-[XfF]|--field|--raw-field|--input/.test(probe[0]), "the probe must not write");
 });
