@@ -111,6 +111,13 @@ test("every action is pinned to a full commit SHA", () => {
   for (const u of uses) assert.match(u, /@[0-9a-f]{40}$/, `${u} is not pinned to a commit SHA`);
 });
 
+test("a probe run never reaches a step that writes", () => {
+  // A manual run with probe=true must stay read-only even when a newer release exists (changed == 'true').
+  const writers = steps.filter((s) => s.includes("peter-evans/create-pull-request@") || /\bgh pr\b/.test(s));
+  assert.equal(writers.length, 2, "expected the pull request step and the auto-merge step");
+  for (const s of writers) assert.match(s, /^\s*(?:- )?if:.*!inputs\.probe/m, "a step that writes must be skipped on a probe");
+});
+
 test("the probe step only reads, and fails if the token covers more than this repository", () => {
   const probe = steps.filter((s) => /^\s*if:\s*inputs\.probe\s*$/m.test(s));
   assert.equal(probe.length, 1, "expected exactly one probe step");
