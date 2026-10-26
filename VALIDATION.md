@@ -61,15 +61,20 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
   purpose. The pin moved `v0.3.0` to `v0.3.1`; both tags and their release assets exist and the lock carries the integrity
   entries. On 2026-10-24 the two `v0.3.1` tarballs were downloaded and their SHA-512 values equal the lock's entries (see
   `docs/whats-new-upstream.md`, which also lists what upstream changed since).
-- `core-update` pull requests are opened with a GitHub App token (the `admin-ops` environment's App credential), not
+- `core-update` pull requests are opened with a GitHub App token (the HCW Main Admin App: its client ID is the repository variable
+  `HCW_MAIN_ADMIN_CLIENT_ID`, its private key the repository secret `HCW_MAIN_ADMIN_PRIVATE_KEY`), not
   `GITHUB_TOKEN`, so the required checks (`ci`, `security`) run on the pull request itself; the `core-update` run linked in
   the PR body still gives the compatibility evidence (it decides the `compatible` / `needs-adaptation` label). The token step
   is covered by `tests/security/core-update-app-token.test.mjs` (static) and was linted with actionlint and zizmor; it has
   not yet opened a real bump pull request here. To prove the credential without a release to adopt:
   `gh workflow run core-update.yml -R saulpatinojr/HCW-MigrateOrchestrator_AddOn --ref main -f probe=true`.
+  The App key lives only as the repository secret `HCW_MAIN_ADMIN_PRIVATE_KEY` and is never printed. To rotate it,
+  generate a new private key on the settings page of the App (https://github.com/settings/apps), replace the secret
+  on this repository's secrets page
+  (https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/settings/secrets/actions), then delete the old key
+  on the settings page of the App.
 - Auto-merge of a compatible bump needs the repository setting "Allow auto-merge". It was off on 2026-10-26 (UTC), when
-  the run that opened the first bump pull request ended with "Auto merge is not allowed for this repository". With it off,
-  `core-update` warns and leaves the pull request for a person to merge.
+  the run that opened the first bump pull request ended with "Auto merge is not allowed for this repository". It has since been turned on (checked on 2026-10-26 UTC). If it is ever off again, `core-update` warns and leaves the pull request for a person to merge.
 - Playwright e2e ran locally on 2026-10-10 (Chromium downloaded) and on GitHub-hosted runners; earlier sandboxes blocked the download.
 - The standalone lab Terraform (`infrastructure/terraform/lab-hostinger`, `lab-cloudflare`), the tunnel edge notes
   (`infrastructure/reverse-proxy`) and `docs/deployment/vps.md` were retired on 2026-10-10 and deleted; `iac-validate`
