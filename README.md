@@ -50,7 +50,8 @@ flowchart LR
 **Updates flow downstream, when compatible.** `.github/workflows/core-update.yml` watches upstream releases (every six
 hours and on demand). For each new release it points `package.json` at the release's two package tarballs, re-locks
 (so the lock carries their hashes), runs this repository's unit tests and the Playwright suite, and opens a pull request
-bumping the pinned release, labelled `compatible` or `needs-adaptation`. A
+bumping the pinned release, labelled `compatible` or `needs-adaptation`. The pull request is opened with a short-lived
+GitHub App token (the `admin-ops` environment's App), not `GITHUB_TOKEN`, so this repository's own CI runs on it. A
 compatible PR auto-merges only if the repository variable `CORE_AUTOMERGE` is `true`. The engine, rules and UI components
 are never edited here; `tests/security/edition-boundary.test.mjs` fails the build if anything here could reach Azure.
 Decision records: [ADR-0028](docs/adr/ADR-0028-appliance-upstream-web-front-downstream.md), [ADR-0008](docs/adr/ADR-0008-hard-edition-boundary-the-demo-cannot-construct-an-azure-provider.md).
