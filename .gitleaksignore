@@ -2,3 +2,12 @@
 # Reviewed 2026-10-10: .env.example line 23 was the empty assignment `AMO_TURNSTILE_SITE_KEY=`; the generic-api-key
 # rule read across the newline into the next line's value. The file carries no value; a comment now separates the lines.
 ebaccca77ac04320aea67873170a30673b15fcb8:.env.example:generic-api-key:23
+# Reviewed 2026-10-26: packages/observability/src/observability.test.ts line 6, as first committed (6223f70, the
+# initial commit), is made-up input for the redactor's unit test, not a credential. It is a fake connection string
+# with a dummy account key and a dummy sig made of the alphabet, followed by a fake token: a cut-down JWT with an
+# incomplete header, the public one-claim example payload and a made-up alphabet signature. The test passes this
+# text to redact() and asserts that none of the three values survives. It is built to look like a secret, so the
+# generic-api-key and jwt rules flag it, and the scheduled full-history scan of 2026-10-26 failed on it. Nothing
+# here grants access to anything.
+6223f70fb72616e9265f44aad74418a7153c945d:packages/observability/src/observability.test.ts:generic-api-key:6
+6223f70fb72616e9265f44aad74418a7153c945d:packages/observability/src/observability.test.ts:jwt:6
