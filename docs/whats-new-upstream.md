@@ -9,24 +9,36 @@ Read it before you change behaviour, bump the upstream pin or review a `core-upd
 upstream, whether it reaches this edition, and what to run. Add an entry when a change lands upstream that reaches this
 edition (the upstream `CLAUDE.md` asks for the same), newest first, and keep the table below true.
 
-## Current upstream state (checked 2026-10-25)
+## Current upstream state (checked 2026-10-27)
 
 | Question | Answer |
 |---|---|
-| Upstream `main` | `2c54b46` (merge of upstream pull request #68, the rename). Pull requests #62 and #68 are both merged |
-| Latest upstream release | `v0.3.1`, published 2026-10-11, tag commit `b7db4c8` (annotated tag) |
-| What this edition pins | `v0.3.1`: `migration-core` and `migration-ui` as release tarballs, by URL in `package.json` and by integrity hash in `package-lock.json` |
-| Drift between pin and latest release | None |
-| Do the pinned hashes match the published assets? | Yes. The two `v0.3.1` tarballs were downloaded on 2026-10-24 and their SHA-512 values equal the `integrity` entries in `package-lock.json` (`sha512-94xboh+o…` for core, `sha512-DaD5DRD1…` for ui) |
-| Unreleased upstream changes that touch the tarballs | Three. (1) The log redaction fix in `migration-core`'s `observability` module, and (2) slow-expression and escaping fixes plus a one-cell length limit in `terraform-generator`, `report-engine` and `csv-ingestion` (both in the 2026-10-25 entries below). (3) `migration-ui`'s `package.json` has newer dependency ranges (see the 2026-10-18 and 2026-10-19 entry), and the next release is compiled with TypeScript 7 (2026-10-11 entry). Besides the redaction fix, nothing under `packages/*/src` that is published and nothing in the shipped rule corpus has changed since `v0.3.1` (the `azure-*` packages under `packages/` are never published) |
+| Upstream `main` | `b9fc763` (merge of upstream pull request #100, the `v0.4.1` release preparation); it is the `v0.4.1` tag commit. Upstream pull request #101, which only changes documents, was open when this was written |
+| Latest upstream release | `v0.4.1`, published 2026-10-27, tag commit `b9fc763` (annotated tag) |
+| What this edition pins | `v0.4.1` once this pull request merges (`main` pins `v0.4.0` until then): `migration-core` and `migration-ui` as release tarballs, by URL in `package.json` and by integrity hash in `package-lock.json` |
+| Drift between pin and latest release | None once this pull request merges |
+| Do the pinned hashes match the published assets? | Yes. The two `v0.4.1` tarballs were downloaded on 2026-10-27 and their SHA-512 values equal the `integrity` entries in `package-lock.json` (`sha512-hKnjvlbs…` for core, `sha512-MQxLdcd2…` for ui) |
+| Unreleased upstream changes that touch the tarballs | None. Upstream `main` is the `v0.4.1` tag commit |
 | Tags | Upstream now has a ruleset that stops `v*` tags being deleted or moved. Before 2026-10-24 the `v0.3.1` tag had been moved once; the final assets match the pin, but a moved tag is exactly how a pinned URL could change underneath this edition |
 
-How "nothing changed" was checked: `git diff v0.3.1 origin/main -- packages rules scripts/assemble-packages.mjs` upstream lists
-only `packages/ui/package.json` and the rule-diff report files under `rules/reports/`. The core tarball ships only
+How "nothing changed" was checked: `git diff v0.4.0 v0.4.1 -- packages rules scripts/assemble-packages.mjs` upstream lists
+only the rule-diff report files `rules/reports/learn-diff.json` and `rules/reports/learn-diff.md`. The core tarball ships only
 `rules/azure`, `rules/organization`, `rules/schemas` and `rules/snapshots` (`scripts/assemble-packages.mjs`), and none of those changed.
-The upstream suite also passes: 110 tests, 35 rules, snapshot 1.0.35.
+Upstream CI on `main` at `b9fc763` passed (the `ci`, `security` and `scanners` runs).
 
 ## Entries (newest first)
+
+### 2026-10-27: upstream release `v0.4.1` (the appliance is fixed; the tarballs do not change)
+
+- Upstream release [`v0.4.1`](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/releases/tag/v0.4.1) fixes the **appliance** API, which in `v0.4.0` cannot start against an Azure database (the database library discarded the sign-in token provider), and the appliance's Terraform. Pull requests [98](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/98) and [99](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/99); release preparation [100](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/100).
+- **Reaches this edition? Only the version number.** The appliance API (`apps/appliance-api`) and the Terraform are not in the two tarballs, and this edition cannot construct an Azure credential. Of the files the tarballs ship, none changed between `v0.4.0` and `v0.4.1`; the file names and the version inside them did.
+- **Action here:** the `core-update` pull request moves both pins from `v0.4.0` to `v0.4.1`; its checks run `npm ci`, `npm test` and the end-to-end suite. The downloaded tarballs' hashes were compared with the lock file (see the table).
+
+### 2026-10-25: upstream release `v0.4.0` (adopted here on 2026-10-26; this entry was added late, on 2026-10-27)
+
+- Upstream release [`v0.4.0`](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/releases/tag/v0.4.0), tagged 2026-10-25. The upstream commits since `v0.3.1` that touched files the tarballs ship (from `git log v0.3.1..v0.4.0 -- packages rules scripts/assemble-packages.mjs`) are: log redaction by structure and hiding of JWTs and PEM private keys (upstream pull requests [81](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/81) and [90](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/90)); a per-cell length cap and fixes for slow expressions and escaping ([88](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/88)); a check of the Entra `nbf` (not before) claim in the token validator ([67](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/67)); more refused credential variables ([64](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/64)); documentation and comments that follow this repository's new name ([70](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/70), [68](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_App/pull/68)); and dependency bumps of the UI package (Radix UI and react-dom).
+- **Reaches this edition? Yes.** The two behaviours announced in the next two entries (redaction of tokens and private keys in logs; the 65,536-character cell limit and the expression fixes) arrived with this release. It was adopted by [pull request 49](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/pull/49), merged on 2026-10-26 with its checks green.
+- **Action here:** none now. This entry only closes the follow-up the next two entries asked for ("add that release to this file").
 
 ### 2026-10-25: the next core release limits one CSV cell to 65,536 characters and fixes slow expressions (upstream pull request 88)
 
