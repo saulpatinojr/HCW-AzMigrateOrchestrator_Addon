@@ -51,7 +51,10 @@ flowchart LR
 hours and on demand). For each new release it points `package.json` at the release's two package tarballs, re-locks
 (so the lock carries their hashes), runs this repository's unit tests and the Playwright suite, and opens a pull request
 bumping the pinned release, labelled `compatible` or `needs-adaptation`. The pull request is opened with a short-lived
-GitHub App token (the HCW Main Admin App), not `GITHUB_TOKEN`, so this repository's own CI runs on it. A
+GitHub App token (the HCW Main Admin App), not `GITHUB_TOKEN`, so this repository's own CI runs on it. The run has two
+jobs, so the new release's code never shares a machine with that token: `bump` installs and tests the release with no
+secret, and `pull-request` redoes the URL change and the lock on a fresh machine without installing anything, checks the
+result is identical to `bump`'s, and only then asks for the token. A
 compatible PR auto-merges only if the repository variable `CORE_AUTOMERGE` is `true`. The engine, rules and UI components
 are never edited here; `tests/security/edition-boundary.test.mjs` fails the build if anything here could reach Azure.
 Decision records: [ADR-0028](docs/adr/ADR-0028-appliance-upstream-web-front-downstream.md), [ADR-0008](docs/adr/ADR-0008-hard-edition-boundary-the-demo-cannot-construct-an-azure-provider.md).

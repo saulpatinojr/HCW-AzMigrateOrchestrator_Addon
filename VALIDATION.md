@@ -3,6 +3,61 @@
 Web-front edition (`saulpatinojr/HCW-MigrateOrchestrator_AddOn`, ADR-0028). Everything below distinguishes what was executed
 from what was not. Engine, rule and UI validation lives upstream in `saulpatinojr/HCW-MigrateOrchestrator_App/VALIDATION.md`.
 
+## core-update in two jobs (2026-10-31)
+
+What changed: `core-update.yml` now has a `bump` job, which installs the new upstream release and runs the tests and e2e
+against it with no secret, and a `pull-request` job, which runs none of that code and only then mints the GitHub App
+token. The second job rebuilds the bump with `scripts/core-update-pin.mjs` (from the checkout of `main`) and a
+lock-only npm install, and refuses the first job's artifact unless its `package.json` and `package-lock.json` are
+byte-identical. This repository records ADRs upstream with shared numbering, so this decision is recorded here and in
+the pull request rather than under a new ADR number.
+
+- **Environment:** Linux authoring sandbox, Node 22.23.4 (no Node 26 locally), npm 11.20.0 run from its registry tarball
+  (sha256 `d1a92f40…a483`, which matches the registry's `sha512-dF3E…Ngw==`), the same npm that the `core-update` run of
+  2026-10-27 used on Node 26.12.1 (run 40454829205, the one that opened pull request 54).
+- **Executed:** `npm ci`; `npm test` — **114 pass, 0 fail**, including three new or rewritten files:
+  `tests/security/core-update-app-token.test.mjs` (static checks of both jobs: no secret and a read-only token in
+  `bump`; in `pull-request` no `npm`/`npx` command, `node` only for the pin script and the pinned npm, the lock command
+  with every refusal flag, no package-manager cache, the same npm version and hash in both jobs, the token after the
+  apply step); `tests/security/core-update-apply.test.mjs` (runs the workflow's own bump, collect and apply steps with a
+  stand-in npm; 23 kinds of tampered artifact or regeneration, among them an extra dependency or an install script in
+  `package.json`, a changed integrity or resolved URL in the lock, an extra file, a symbolic link and a bad or missing
+  outcome, are each refused with the named error, nothing written to the step output and `git status` clean);
+  `tests/security/core-update-pin.test.mjs` (the pin script on this repository's own files, hostile tags, and the lock
+  check); `tests/security/core-update-tag-shape.test.mjs` unchanged and passing.
+- **Mutation check:** 22 deliberate breakages of the workflow (for example `npm test`, `npm ci`, `npx` or the pinned
+  npm's `ci` added to the `pull-request` job; `--ignore-scripts`, `--allow-git=none` or `--allow-remote=root` dropped;
+  the package-manager cache turned back on; the byte comparison, the artifact listing, the outcome check, the tag check,
+  the lock check or `git clean` removed; a token step placed before the apply step; a token given to the compatibility
+  step; a different lock command in `bump`; the npm hash check made optional; auto-merge on the outcome alone) each
+  made at least one test fail. The workflow was restored and compared byte for byte afterwards.
+- **Dry run against a real release:** the tree as it was just before pull request 54 (`756dfb2^`, pinning `v0.4.0`) was
+  bumped to `v0.4.1` with `scripts/core-update-pin.mjs` (its `package.json` equals `main`'s byte for byte) and re-locked
+  with `npm-cli.js install --package-lock-only --ignore-scripts --allow-git=none --allow-remote=root --allow-file=none
+  --allow-directory=root --no-audit --no-fund --no-update-notifier`, twice, in separate folders with separate npm caches.
+  Both locks are byte-identical to each other and to `main`'s `package-lock.json` (the one the real workflow committed in
+  pull request 54); npm left `package.json` untouched and created no `node_modules`. The two `v0.4.1` tarballs were
+  downloaded again and their SHA-512 equals the lock's `integrity` entries (`sha512-hKnjvlbs…` core,
+  `sha512-MQxLdcd2…` ui), so npm records the tarball's own hash. `check-lock` accepts `main`'s lock.
+- **Experiment, the lock-only install runs no package code:** with the flags above, a dependency served from a local
+  address with `preinstall`, `install`, `postinstall` and `prepare` scripts wrote none of their marker files and no
+  `node_modules`; without `--ignore-scripts` the project's own `postinstall` ran (npm runs the root project's scripts
+  even with `--package-lock-only`, `lib/commands/install.js`); a dependency that pulls a git dependency stopped with
+  `EALLOWGIT` and one that pulls another URL with `EALLOWREMOTE`, before any fetch (npm's `pacote` checks these when
+  it chooses a fetcher). `--allow-git=none` matters because preparing a git dependency runs `npm install` inside its
+  clone (`pacote/lib/git.js`), which `--ignore-scripts` alone does not cover.
+- **Checked:** `actionlint` 1.7.12 (release binary, checksum checked) on `core-update.yml`: no findings, with its
+  shellcheck integration off because shellcheck is not installed here. The `upload-artifact` (v7.0.2) and
+  `download-artifact` (v8.0.2) pins are the commits those tags point at (`git ls-remote`), the same pins the Cloud
+  Assessor and NetworkEyes add-ons use; `setup-node` v7.1.0 has the `package-manager-cache` input (its `action.yml` at
+  the pinned commit).
+- **Not executed:** the two-job workflow on GitHub (it has not run yet, so it has not opened a bump pull request); the
+  run on Node 26 (the dry run used Node 22 with the same npm); shellcheck and zizmor (installing them from PyPI was
+  refused by this session's safety check); `npm run e2e` (nothing here touches the pane or the API).
+- **Known limitation:** the two jobs ask the npm registry separately, minutes apart. If a new upstream release adds a
+  dependency and the registry publishes a newer matching version between the two jobs, the locks differ and the
+  `pull-request` job refuses; the run fails and a rerun fixes it. That is the safe direction.
+
 ## Pane model, 0.3.0 (2026-10-10)
 
 - **Environment:** Linux authoring sandbox, Node 26.11.1 (a local `node@26` on PATH, never system-wide), npm 10.9.4, the sibling
@@ -65,8 +120,9 @@ from what was not. Engine, rule and UI validation lives upstream in `saulpatinoj
   `HCW_MAIN_ADMIN_CLIENT_ID`, its private key the repository secret `HCW_MAIN_ADMIN_PRIVATE_KEY`), not
   `GITHUB_TOKEN`, so the required checks (`ci`, `security`) run on the pull request itself; the `core-update` run linked in
   the PR body still gives the compatibility evidence (it decides the `compatible` / `needs-adaptation` label). The token step
-  is covered by `tests/security/core-update-app-token.test.mjs` (static) and was linted with actionlint and zizmor; it has
-  not yet opened a real bump pull request here. To prove the credential without a release to adopt:
+  is covered by `tests/security/core-update-app-token.test.mjs` (static) and was linted with actionlint and zizmor in the
+  earlier one-job layout, which opened the `v0.4.1` bump (pull request 54). The two-job layout of 2026-10-31 (section
+  above) has not run on GitHub yet. To prove the credential without a release to adopt:
   `gh workflow run core-update.yml -R saulpatinojr/HCW-MigrateOrchestrator_AddOn --ref main -f probe=true`.
   The App key lives only as the repository secret `HCW_MAIN_ADMIN_PRIVATE_KEY` and is never printed. To rotate it,
   generate a new private key on the settings page of the App (https://github.com/settings/apps), replace the secret in every repository that holds the key (this one:
