@@ -3,6 +3,35 @@
 Web-front edition (`saulpatinojr/HCW-MigrateOrchestrator_AddOn`, ADR-0028). Everything below distinguishes what was executed
 from what was not. Engine, rule and UI validation lives upstream in `saulpatinojr/HCW-MigrateOrchestrator_App/VALIDATION.md`.
 
+## core-update runs from main only, and auto-merge ignores the bump job's report (2026-10-31)
+
+What changed: the first step of both jobs refuses a run whose `github.ref` is not `refs/heads/main`, the `pull-request`
+job's `if:` also requires it, both checkouts take `github.sha`, and `create-pull-request` gets `base: main`. The
+auto-merge step's condition is now `CORE_AUTOMERGE == 'true'`, not a probe, the apply step succeeded and a pull request
+number exists; it no longer reads the untrusted outcome.
+
+- **Executed:** `npm ci`; `npm test` — **116 pass, 0 fail**; `node --test tests/security/core-update-app-token.test.mjs`
+  — 22 pass, with three new or rewritten tests (the refusal is the first step of each job, has no `if:`, reads the ref
+  through `env` and names it in an `::error::`; the `bump` job has no job-level `if:` and the `pull-request` job's
+  requires `main`; both checkouts use `github.sha` and the pull request step names `base: main`; the auto-merge
+  condition has the variable, the apply step and `!inputs.probe` and nothing that reads the outcome, and only the pull
+  request step and a token-free warning read it). `actionlint` 1.7.12 on `core-update.yml`: no findings (shellcheck
+  integration off, not installed).
+- **Mutation check:** six breakages, each made at least one test fail: the `bump` job's refusal step removed, the
+  `pull-request` job's refusal step removed, the `main` condition removed from the job's `if:`, the refusal's `exit 1`
+  replaced with `true`, `ref: github.sha` removed from a checkout, and `steps.apply.outputs.outcome == 'success'` added
+  back to the auto-merge condition. The workflow was restored byte for byte afterwards.
+- **Checked, read-only:** `gh api repos/saulpatinojr/HCW-MigrateOrchestrator_AddOn/rules/branches/main` shows the active
+  "Protect main" ruleset (id 25825144) with a `required_status_checks` rule for `build-test`, `codeql`, `secret-scan`,
+  `e2e` and `dependency-review`, which covers what the `bump` job's compatibility check runs (unit tests, build, e2e).
+  `peter-evans/create-pull-request` at the pinned commit throws "When the repository is checked out on a commit instead
+  of a branch, the 'base' input must be supplied." without `base` (`src/create-pull-request.ts`), hence `base: main`.
+- **Not executed:** the workflow on GitHub (neither a scheduled run nor a refused run from a branch); the value of the
+  `CORE_AUTOMERGE` variable could not be read from this session.
+- **Known limitation:** a manual run takes the workflow file itself from the branch it was started on, so a branch that
+  also edits `core-update.yml` can delete these guards. Closing that needs the App key moved to an environment whose
+  deployment branches are `main` only (a settings change, not made here).
+
 ## core-update in two jobs (2026-10-31)
 
 What changed: `core-update.yml` now has a `bump` job, which installs the new upstream release and runs the tests and e2e
