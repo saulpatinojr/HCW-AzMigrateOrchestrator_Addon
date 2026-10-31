@@ -46,6 +46,13 @@ layout was flipped at zero migration cost.
 > attached to `_App`'s GitHub Release of the chosen `v*` tag by URL, with their integrity hash in `package-lock.json`;
 > `core-update.yml` bumps the tag and re-locks. No sibling checkout, no `APP_REF`, no registry on the path. The Cloud
 > Assessor and NetworkEyes pairs use the same method (a release wheel pinned by URL and sha256).
+>
+> Note, 2026-10-31 ([pull request 58](https://github.com/saulpatinojr/HCW-MigrateOrchestrator_AddOn/pull/58), this edition only): the decision in item 3 stands; how it is enforced
+> changed. The `compatible` / `needs-adaptation` label comes from the bump job, which runs the new upstream code, so it
+> is not trusted and no longer turns auto-merge on. With `CORE_AUTOMERGE=true`, auto-merge is turned on for every bump
+> pull request, and GitHub merges only a bump whose required checks pass on that pull request; auto-merge waits for
+> them. The required checks run the same suites as the compatibility check, so a `needs-adaptation` bump fails them and
+> does not merge until it is fixed.
 
 ## Consequences
 
