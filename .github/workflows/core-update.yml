@@ -62,6 +62,11 @@ jobs:
           current="$(grep -oE "releases/download/v[0-9][0-9A-Za-z.+-]*/hybridcloudworks-migration-core-" package.json | head -1 | sed -E 's|releases/download/||; s|/hybridcloudworks-migration-core-||')"
           test -n "$current" || { echo "::error::package.json does not pin the upstream release tarballs"; exit 1; }
           latest="${REQUESTED:-$(gh api "repos/${UPSTREAM}/releases/latest" --jq .tag_name)}"
+          case "$latest" in *$'\n'*|*$'\r'*) echo "::error::the upstream tag is not a single line"; exit 1;; esac
+          # The tag is pasted into sed and into GITHUB_OUTPUT below, so refuse anything that is not a plain release tag
+          # (vMAJOR.MINOR.PATCH, optionally -pre or +build): a tag such as `v9|;e…` would otherwise run a shell command
+          # through sed's `e`, in the job that later holds the App token.
+          [[ "$latest" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]] || { echo "::error::unexpected upstream tag: not vMAJOR.MINOR.PATCH"; exit 1; }
           echo "latest=$latest" >> "$GITHUB_OUTPUT"; echo "current=$current" >> "$GITHUB_OUTPUT"
           if [ "$latest" = "$current" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "already at $current"; else echo "changed=true" >> "$GITHUB_OUTPUT"; echo "$current -> $latest"; fi
       - if: steps.refs.outputs.changed == 'true'
