@@ -205,14 +205,60 @@ test("both jobs install the same npm, checked against its sha256, and run the sa
   assert.equal(lockLine(job.bump).length, 1);
 });
 
-test("the artifact is handed over with the outcome only, and the outcome alone never turns on auto-merge", () => {
+test("the artifact is handed over with the outcome only, and auto-merge never reads the outcome", () => {
   assert.equal(using("actions/upload-artifact").length, 1);
   assert.ok(job.bump.includes("actions/upload-artifact@"));
+  assert.ok(!/steps\.compat\./.test(job["pull-request"]), "the pull-request job reads the outcome from its own apply step");
   const merge = steps.filter((s) => /\bgh pr merge\b/.test(s));
   assert.equal(merge.length, 1);
   const condition = merge[0].split("\n", 1)[0];
-  assert.ok(condition.includes("vars.CORE_AUTOMERGE == 'true'") && condition.includes("steps.apply.outputs.outcome == 'success'"));
-  assert.ok(!/steps\.compat\./.test(job["pull-request"]), "the pull-request job reads the outcome from its own apply step");
+  assert.match(condition, /^if: /);
+  // The outcome comes from the job that ran upstream code, so it must not decide the merge. What does: the
+  // repository variable, this job's own byte-for-byte check, and GitHub's required checks on the pull request.
+  for (const part of ["vars.CORE_AUTOMERGE == 'true'", "steps.apply.outcome == 'success'", "!inputs.probe", "steps.pr.outputs.pull-request-number != ''"]) {
+    assert.ok(condition.includes(part), `the auto-merge condition must include ${part}`);
+  }
+  assert.ok(!/outputs\.outcome|outcome\.txt|bump\/outcome/.test(merge[0]), "the auto-merge step must not read the untrusted outcome");
+  assert.match(merge[0], /gh pr merge --squash --auto "\$PR_NUMBER"/, "auto-merge waits for the required checks; never merge directly");
+  assert.ok(!/--admin/.test(merge[0]));
+  // The outcome reaches only the pull request's text (title, labels, body) and a warning that holds no token.
+  const readers = stepsOf(job["pull-request"]).filter((s) => /steps\.apply\.outputs\.outcome/.test(s));
+  const pr = only("peter-evans/create-pull-request");
+  assert.equal(readers.length, 2);
+  assert.ok(readers.includes(pr));
+  const warning = readers.find((s) => s !== pr);
+  assert.ok(!/GH_TOKEN|secrets\.|app-token|\bgh\b/.test(warning), "the step that warns on the outcome must hold no token");
+});
+
+const REFUSE_NAME = "name: Refuse a run that is not on main";
+
+test("both jobs refuse a run started on a branch other than main, as their first step, with an error naming it", () => {
+  for (const [name, body] of Object.entries(job)) {
+    const first = stepsOf(body)[0];
+    assert.ok(first.startsWith(REFUSE_NAME), `${name}: the first step must be the main-only refusal`);
+    assert.ok(!/^\s*if:/m.test(first), `${name}: the refusal must always run`);
+    assert.match(first, /^\s*env: \{ RUN_REF: "\$\{\{ github\.ref \}\}" \}\s*$/m, `${name}: the ref reaches the shell through env`);
+    const sh = commands(first);
+    assert.match(sh, /if \[ "\$RUN_REF" != "refs\/heads\/main" \]; then/);
+    assert.match(sh, /echo "::error::[^"]*\$\{RUN_REF\}[^"]*"/, `${name}: the error must name the ref`);
+    assert.match(sh, /^\s*exit 1$/m);
+    assert.ok(!sh.includes("${{"), `${name}: no expression inside the shell`);
+  }
+  // A job-level `if:` would skip the bump job in silence; the pull-request job is also gated by one.
+  assert.ok(!/^ {4}if:/m.test(job.bump), "the bump job must not be skipped silently: it refuses instead");
+  assert.match(job["pull-request"], /^ {4}if: github\.ref == 'refs\/heads\/main' && \(needs\.bump\.outputs\.changed == 'true' \|\| inputs\.probe\)$/m);
+});
+
+test("both checkouts take the commit the run was started for on main, after the refusal", () => {
+  for (const [name, body] of Object.entries(job)) {
+    const all = stepsOf(body);
+    const checkouts = all.filter((s) => /^uses:\s*actions\/checkout@/m.test(s));
+    assert.equal(checkouts.length, 1, `${name}: one checkout`);
+    assert.match(checkouts[0], /^\s*with: \{ persist-credentials: false, ref: "\$\{\{ github\.sha \}\}" \}\s*$/m);
+    assert.ok(all.indexOf(checkouts[0]) > 0 && all[0].startsWith(REFUSE_NAME), `${name}: the refusal comes before the checkout`);
+  }
+  // A checkout of a commit is a detached HEAD, where create-pull-request needs the base named.
+  assert.match(only("peter-evans/create-pull-request"), /^\s*base: main\s*$/m);
 });
 
 test("every action is pinned to a full commit SHA", () => {
