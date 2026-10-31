@@ -159,7 +159,8 @@ the pull request rather than under a new ADR number.
   add-on repositories, so check the other three), then delete the old key on the settings page of the App.
   The settings page can hold several keys, so a separate key per repository lets you revoke one without
   touching the others.
-- Auto-merge of a compatible bump needs the repository setting "Allow auto-merge". It was off on 2026-10-26 (UTC), when
+- Auto-merge of a bump (any bump since pull request 58; it then waits for the required checks) needs the repository
+  setting "Allow auto-merge". It was off on 2026-10-26 (UTC), when
   the run that opened the first bump pull request ended with "Auto merge is not allowed for this repository". It has since been turned on (checked on 2026-10-26 UTC). If it is ever off again, `core-update` warns and leaves the pull request for a person to merge.
 - Playwright e2e ran locally on 2026-10-10 (Chromium downloaded) and on GitHub-hosted runners; earlier sandboxes blocked the download.
 - The standalone lab Terraform (`infrastructure/terraform/lab-hostinger`, `lab-cloudflare`), the tunnel edge notes
