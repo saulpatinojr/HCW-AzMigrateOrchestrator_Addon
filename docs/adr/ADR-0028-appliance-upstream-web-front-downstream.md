@@ -51,8 +51,11 @@ layout was flipped at zero migration cost.
 > changed. The `compatible` / `needs-adaptation` label comes from the bump job, which runs the new upstream code, so it
 > is not trusted and no longer turns auto-merge on. With `CORE_AUTOMERGE=true`, auto-merge is turned on for every bump
 > pull request, and GitHub merges only a bump whose required checks pass on that pull request; auto-merge waits for
-> them. The required checks run the same suites as the compatibility check, so a `needs-adaptation` bump fails them and
-> does not merge until it is fixed.
+> them. The required checks are that independent gate: they cover the compatibility check's suites and the repository's
+> other required checks, and they run again on the pull request itself. A bump that really breaks this edition fails
+> them and does not merge until it is fixed. The label can also say `needs-adaptation` after a one-off failure in the
+> bump job (its compatibility step is allowed to fail), and such a bump merges once its own checks pass; select
+> **Disable auto-merge** on the pull request to hold one.
 
 ## Consequences
 
